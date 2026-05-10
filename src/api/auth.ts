@@ -69,3 +69,17 @@ export function fetchRegister(params: Api.Auth.RegisterParams) {
     params
   })
 }
+
+export function fetchSendResetPasswordCode(data: Api.Auth.ForgotPasswordCodeParams) {
+  return request.post<void>({
+    url: '/api/auth/forgot-password/code',
+    data
+  })
+}
+
+export function fetchResetPassword(data: Api.Auth.ResetPasswordParams) {
+  return request.post<void>({
+    url: '/api/auth/forgot-password/reset',
+    data
+  })
+}

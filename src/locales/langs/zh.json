@@ -160,8 +160,16 @@
     "title": "忘记密码？",
     "subTitle": "输入您的电子邮件来重置您的密码",
     "placeholder": "请输入您的电子邮件",
+    "codePlaceholder": "请输入验证码",
+    "newPasswordPlaceholder": "请输入新密码",
+    "confirmPasswordPlaceholder": "请再次输入新密码",
+    "sendCodeBtnText": "发送验证码",
     "submitBtnText": "提交",
-    "backBtnText": "返回"
+    "backBtnText": "返回",
+    "emailInvalid": "邮箱格式不正确",
+    "codeSent": "验证码已发送，请查收邮件",
+    "passwordMismatch": "两次输入的新密码不一致",
+    "resetSuccess": "密码重置成功"
   },
   "register": {
     "title": "创建账号",

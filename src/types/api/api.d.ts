@@ -81,6 +81,17 @@ declare namespace Api {
       confirmPassword: string
     }
 
+    interface ForgotPasswordCodeParams {
+      email: string
+    }
+
+    interface ResetPasswordParams {
+      email: string
+      code: string
+      newPassword: string
+      confirmPassword: string
+    }
+
     /** 用户信息 */
     interface UserInfo {
       buttons: string[]

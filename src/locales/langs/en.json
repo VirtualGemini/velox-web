@@ -160,8 +160,16 @@
     "title": "Forgot password?",
     "subTitle": "Enter your email to reset your password",
     "placeholder": "Please enter your email",
+    "codePlaceholder": "Please enter the verification code",
+    "newPasswordPlaceholder": "Please enter a new password",
+    "confirmPasswordPlaceholder": "Please enter the new password again",
+    "sendCodeBtnText": "Send code",
     "submitBtnText": "Submit",
-    "backBtnText": "Back"
+    "backBtnText": "Back",
+    "emailInvalid": "Invalid email format",
+    "codeSent": "Verification code sent, please check your email",
+    "passwordMismatch": "The two new passwords do not match",
+    "resetSuccess": "Password reset successful"
   },
   "register": {
     "title": "Create account",
