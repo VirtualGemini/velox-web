@@ -1,104 +1,139 @@
-<img  src="https://www.qiniu.lingchen.kim/github-cover-light6.webp" />
+<h2 align="center" id="top">Arc Pro 管理后台前端</h2>
+<p align="center">基于 Art Design Pro 原型重构的后台管理前端，已接入 architecture-pro 后端 API，并扩展为可实际落地的管理系统。</p>
+<div align="center"><a href="./README.md">English</a> | 简体中文</div>
 
 <br />
-<h1 align="center">Art Design Pro</h1>
-<p align="center">一款兼具设计美学与高效开发的后台系统模版，助你快速构建专业级应用</p>
-<div align="center">简体中文 | <a href="./README.md">English</a></div>
 
-<br />
-<div align="center">
+## 项目概述
 
-[![license](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE) [![github stars](https://img.shields.io/github/stars/Daymychen/art-design-pro)](https://github.com/Daymychen/art-design-pro/stargazers) [![github forks](https://img.shields.io/github/forks/Daymychen/art-design-pro)](https://github.com/Daymychen/art-design-pro/network/members)
+本项目是 `arc-pro` 的前端部分。它基于原始 `art-design-pro` 原型继续开发，但已经不再是单纯的 UI 演示模板。
 
-</div>
-<br />
+当前版本重点完成了以下工作：
 
-## 这个项目有什么特别的呢？
-
-**界面设计**：现代化 UI 设计，流畅交互，以用户体验与视觉设计为核心
-
-**极速上手**：简洁架构 + 完整文档，后端开发者也能轻松使用
-
-**丰富组件**：内置数据展示、表单等多种高质量组件，满足不同业务场景的需求
-
-**丝滑交互**：按钮点击、主题切换、页面过渡、图表动画，体验媲美商业产品
-
-**高效开发**：内置 useTable、ArtForm 等实用 API，显著提升开发效率
-
-**精简脚本**：内置一键清理脚本，可快速清理演示数据，立即得到可开发的基础项目
+- 接入 `architecture-pro` 后端 API
+- 将原型中的演示流程替换为真实认证与业务请求
+- 新增系统管理、文件管理、个人资料等后台能力
+- 优化动态路由、权限控制、Token 管理与异常处理
 
 ## 技术栈
 
-开发框架：Vue3、TypeScript、Vite、Element-Plus、Tailwind CSS
+- Vue 3
+- TypeScript
+- Vite 7
+- Element Plus
+- Tailwind CSS 4
+- Pinia
+- Vue Router 4
+- Axios
+- Vue I18n
+- ECharts
+- WangEditor
 
-代码规范：Eslint、Prettier、Stylelint、Husky、Lint-staged、cz-git
+## 新增内容
 
-## 预览
+- 真实认证流程：登录、注册、退出登录、忘记密码、重置密码
+- 当前用户能力：个人资料修改、密码修改、头像更新
+- 系统管理模块：用户管理、角色管理、菜单管理
+- 文件中心：文件列表、上传、删除、批量删除
+- 文件配置管理：新增、编辑、启停、设为主配置、配置测试
+- 基于后端菜单数据的动态菜单与权限绑定
 
-<kbd><img src="https://www.qiniu.lingchen.kim/github-c1.webp" alt="浅色主题"/></kbd>
+## 优化内容
 
-<kbd><img src="https://www.qiniu.lingchen.kim/github-c2.webp" alt="浅色主题"/></kbd>
+- 基于 Axios 的统一请求层：
+  - 自动注入 `Authorization` Token
+  - 自动携带 `X-Time-Zone` 时区请求头
+  - 统一解析后端 `Result` 返回结构
+  - 统一错误提示与异常分发
+  - 401 自动退出登录，带防抖处理
+- 动态路由初始化流程与后端菜单结构对齐
+- 基于 Pinia 的登录态与 Token 持久化
+- 使用 Vite Proxy 完成本地前后端联调
+- 前端权限标识与后端 `Sa-Token` 权限码保持一致
 
-<kbd><img src="https://www.qiniu.lingchen.kim/github-c4.webp" alt="暗黑主题"/></kbd>
+## 已接入的后端 API
 
-<kbd><img src="https://www.qiniu.lingchen.kim/github-c5.webp" alt="暗黑主题"/></kbd>
+前端已经完成以下后端模块对接：
 
-## 快速访问
+- 认证：`/api/auth/login`、`/api/auth/register`、`/api/auth/logout`
+- 找回密码：`/api/auth/forgot-password/code`、`/api/auth/forgot-password/reset`
+- 当前用户：`/api/user/info`、`/api/user/profile`、`/api/user/password`、`/api/user/avatar`
+- 用户管理：`/api/user/list`、`/api/user`、`/api/user/{userId}`
+- 角色管理：`/api/role/list`、`/api/role/{roleId}/menu-permissions`
+- 菜单管理：`/api/v3/system/menus/simple`、`/api/v3/system/menus`
+- 文件管理：`/api/file/*`
+- 文件配置管理：`/api/file-config/*`
 
-[演示地址](https://www.artd.pro) | [官方文档](https://www.artd.pro/docs) | [更新日志](./CHANGELOG.md)
+## 项目结构
 
-## 安装运行
+```text
+art-design-pro/
+├── src/api                  # 后端接口封装
+├── src/router               # 静态路由与动态路由
+├── src/store                # Pinia 状态管理
+├── src/utils/http           # Axios 请求层与错误处理
+├── src/views/auth           # 登录 / 注册 / 忘记密码
+├── src/views/system         # 用户 / 角色 / 菜单 / 文件模块
+├── src/views/config         # 文件配置页面
+└── src/views/dashboard      # 控制台页面
+```
+
+## 环境要求
+
+- Node.js >= 20.19.0
+- pnpm >= 8.8.0
+
+关键环境变量如下：
 
 ```bash
-# 安装依赖
+VITE_ACCESS_MODE=architecture-pro
+VITE_API_URL=/
+VITE_API_PROXY_URL=http://localhost:8080
+VITE_WITH_CREDENTIALS=false
+```
+
+本地开发时，前端会通过 Vite 代理将 `/api` 请求转发到后端服务。
+
+## 快速开始
+
+```bash
 pnpm install
-
-# 如果 pnpm install 安装失败，尝试使用下面的命令安装依赖
-pnpm install --ignore-scripts
-
-# 本地开发环境启动
 pnpm dev
+```
 
-# 生产环境打包
+生产构建：
+
+```bash
 pnpm build
 ```
 
-## 精简版本
-
-项目内置精简脚本，可快速移除项目中的演示数据，让开发者获得一个可快速开发的基础项目
+预览构建产物：
 
 ```bash
-pnpm clean:dev
+pnpm serve
 ```
 
-## 技术支持
+## 后端依赖
 
-QQ群：<a href="https://qm.qq.com/cgi-bin/qm/qr?k=Gg6yzZLFaNgmRhK0T5Qcjf7-XcAFWWXm&jump_from=webapi&authKey=YpRKVJQyFKYbGTiKw0GJ/YQXnNF+GdXNZC5beQQqnGZTvuLlXoMO7nw5fNXvmVhA">1038930070</a>（点击链接加入群聊）
+该前端默认与同仓库下的 `architecture-pro` 后端配套使用。
 
-## 兼容性
+推荐本地启动顺序：
 
-支持 Chrome、Safari、Firefox 等现代主流浏览器。
+1. 启动 MySQL 和 Redis
+2. 启动 `architecture-pro`
+3. 启动当前前端项目
 
-## 贡献
+默认本地地址：
 
-我们真诚欢迎并感谢每一位贡献者的支持！无论您有新想法、功能建议还是代码优化，都可以通过以下方式参与：
+- 前端：`http://localhost:3006`
+- 后端：`http://localhost:8080`
 
-提交 Pull Request：分享您的代码，助力项目成长。
+## 说明
 
-创建 GitHub Issue：提出 bug 反馈或新功能建议，让我们一起完善。
+- 当前项目使用后端权限码，例如 `system:user:query`、`system:role:update`
+- 文件上传同时支持后端直传与预签名地址上传两种模式
+- 当前请求层已适配 `architecture-pro` 的统一返回结构
 
-您的每一点贡献都让这个项目更进一步！快来加入我们的开源社区吧！
-
-## 持续优化与扩展
-
-项目保持活跃更新，支持最新前端技术栈，兼容主流框架，确保长期稳定性和扩展性。社区驱动的反馈机制，让你的需求快速融入项目迭代。
-
-## 捐赠
-
-如果你觉得这个项目为你减少了开发成本、化解了工作 / 生活里的难题，可以通过以下方式支持一下～
-
-<img src="https://www.qiniu.lingchen.kim/%E7%BB%84%202%402x%202.png" alt="捐赠二维码"/>
-
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=Daymychen/art-design-pro&type=Date)](https://www.star-history.com/#Daymychen/art-design-pro&Date)
+<br>
+<div align="center"><a href="#top">回到顶部</a></div>
+<br>

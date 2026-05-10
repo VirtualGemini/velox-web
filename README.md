@@ -1,104 +1,141 @@
-<img  src="https://www.qiniu.lingchen.kim/github-cover-light6.webp" />
-
-<br />
-<h1 align="center">Art Design Pro</h1>
-<p align="center">A backend system template that combines design aesthetics with efficient development, helping you quickly build professional-grade applications</p>
+<h2 align="center" id="top">Arc Pro Admin Frontend</h2>
+<p align="center">An admin console rebuilt from the Art Design Pro prototype, integrated with the architecture-pro backend APIs and extended with production-oriented management features.</p>
 <div align="center">English | <a href="./README.zh-CN.md">简体中文</a></div>
 
 <br />
-<div align="center">
 
-[![license](https://img.shields.io/badge/license-MIT-green.svg)](./LICENSE) [![github stars](https://img.shields.io/github/stars/Daymychen/art-design-pro)](https://github.com/Daymychen/art-design-pro/stargazers) [![github forks](https://img.shields.io/github/forks/Daymychen/art-design-pro)](https://github.com/Daymychen/art-design-pro/network/members)
+## Overview
 
-</div>
-<br />
+This project is the frontend of `arc-pro`. It is based on the original `art-design-pro` prototype, but no longer serves as a pure visual demo.
 
-## What makes this project special?
+It has been turned into a real admin application by:
 
-**Interface Design**: Modern UI design with smooth interactions, focusing on user experience and visual design
-
-**Quick Start**: Clean architecture + comprehensive documentation, easy for backend developers to use
-
-**Rich Components**: Built-in high-quality components for data display, forms, and more to meet different business scenarios
-
-**Smooth Interactions**: Button clicks, theme switching, page transitions, chart animations - experience comparable to commercial products
-
-**Efficient Development**: Built-in practical APIs like useTable and ArtForm to significantly improve development efficiency
-
-**Clean Scripts**: Built-in one-click cleanup script to quickly remove demo data and get a ready-to-develop base project
+- integrating the `architecture-pro` backend API
+- replacing mock-oriented flows with actual authentication and business requests
+- adding system management, file management, and profile management pages
+- optimizing route permissions, token handling, and request error behavior
 
 ## Tech Stack
 
-Development Framework: Vue3, TypeScript, Vite, Element-Plus, Tailwind CSS
+- Vue 3
+- TypeScript
+- Vite 7
+- Element Plus
+- Tailwind CSS 4
+- Pinia
+- Vue Router 4
+- Axios
+- Vue I18n
+- ECharts
+- WangEditor
 
-Code Standards: Eslint, Prettier, Stylelint, Husky, Lint-staged, cz-git
+## What Was Added
 
-## Preview
+- Real authentication flow: login, register, logout, forgot password, reset password
+- Current-user capabilities: profile update, password change, avatar update
+- System management modules: users, roles, menus
+- File center: file list, upload, delete, batch delete
+- File configuration management: create, update, enable/disable, set master, test configuration
+- Backend-driven menu loading and permission binding
 
-<kbd><img src="https://www.qiniu.lingchen.kim/github-c1.webp" alt="Light Theme"/></kbd>
+## What Was Optimized
 
-<kbd><img src="https://www.qiniu.lingchen.kim/github-c2.webp" alt="Light Theme"/></kbd>
+- Unified API client based on Axios with:
+  - token injection via `Authorization`
+  - `X-Time-Zone` request header
+  - unified `Result` response parsing
+  - centralized error messaging
+  - debounced 401 auto logout handling
+- Dynamic route initialization aligned with backend menu data
+- Persistent login state and token storage via Pinia
+- Vite proxy setup for local frontend-backend integration
+- Frontend permission marks aligned with backend `Sa-Token` permission codes
 
-<kbd><img src="https://www.qiniu.lingchen.kim/github-c4.webp" alt="Dark Theme"/></kbd>
+## Key API Integration
 
-<kbd><img src="https://www.qiniu.lingchen.kim/github-c5.webp" alt="Dark Theme"/></kbd>
+The frontend is already wired to the backend modules below:
 
-## Quick Access
+- Auth: `/api/auth/login`, `/api/auth/register`, `/api/auth/logout`
+- Password recovery: `/api/auth/forgot-password/code`, `/api/auth/forgot-password/reset`
+- Current user: `/api/user/info`, `/api/user/profile`, `/api/user/password`, `/api/user/avatar`
+- User management: `/api/user/list`, `/api/user`, `/api/user/{userId}`
+- Role management: `/api/role/list`, `/api/role/{roleId}/menu-permissions`
+- Menu management: `/api/v3/system/menus/simple`, `/api/v3/system/menus`
+- File management: `/api/file/*`
+- File config management: `/api/file-config/*`
 
-[Live Demo](https://www.artd.pro) | [Official Documentation](https://www.artd.pro/docs) | [Changelog](./CHANGELOG.en.md)
+## Project Structure
 
-## Installation & Setup
+```text
+art-design-pro/
+├── src/api                  # Backend API wrappers
+├── src/router               # Static and dynamic routing
+├── src/store                # Pinia stores
+├── src/utils/http           # Axios client and error handling
+├── src/views/auth           # Login / register / forgot password
+├── src/views/system         # User / role / menu / file modules
+├── src/views/config         # File config pages
+└── src/views/dashboard      # Dashboard pages
+```
+
+## Environment
+
+Runtime requirements:
+
+- Node.js >= 20.19.0
+- pnpm >= 8.8.0
+
+Important environment variables:
 
 ```bash
-# Install dependencies
+VITE_ACCESS_MODE=architecture-pro
+VITE_API_URL=/
+VITE_API_PROXY_URL=http://localhost:8080
+VITE_WITH_CREDENTIALS=false
+```
+
+Local development uses the Vite proxy to forward `/api` requests to the backend.
+
+## Quick Start
+
+```bash
 pnpm install
-
-# If pnpm install fails, try using the command below
-pnpm install --ignore-scripts
-
-# Start local development environment
 pnpm dev
+```
 
-# Build for production
+Build for production:
+
+```bash
 pnpm build
 ```
 
-## Clean Version
-
-The project includes a cleanup script to quickly remove demo data and provide developers with a ready-to-develop base project
+Preview production build:
 
 ```bash
-pnpm clean:dev
+pnpm serve
 ```
 
-## Technical Support
+## Backend Dependency
 
-QQ Group: <a href="https://qm.qq.com/cgi-bin/qm/qr?k=Gg6yzZLFaNgmRhK0T5Qcjf7-XcAFWWXm&jump_from=webapi&authKey=YpRKVJQyFKYbGTiKw0GJ/YQXnNF+GdXNZC5beQQqnGZTvuLlXoMO7nw5fNXvmVhA">1038930070</a> (Click the link to join the group chat)
+This frontend is designed to work with the `architecture-pro` backend in the same repository.
 
-## Browser Compatibility
+Recommended local startup order:
 
-Supports modern mainstream browsers including Chrome, Safari, Firefox, and more.
+1. Start MySQL and Redis
+2. Start `architecture-pro`
+3. Start this frontend project
 
-## Contributing
+Default local addresses:
 
-We sincerely welcome and appreciate the support of every contributor! Whether you have new ideas, feature suggestions, or code optimizations, you can participate in the following ways:
+- Frontend: `http://localhost:3006`
+- Backend: `http://localhost:8080`
 
-Submit Pull Requests: Share your code and help the project grow.
+## Notes
 
-Create GitHub Issues: Provide bug feedback or new feature suggestions to help us improve together.
+- The project uses backend permission codes such as `system:user:query` and `system:role:update`.
+- File upload supports both backend-upload and presigned-url flows.
+- The current implementation targets the unified backend response structure used by `architecture-pro`.
 
-Every contribution you make takes this project one step further! Come join our open source community!
-
-## Continuous Optimization & Extension
-
-The project maintains active updates, supports the latest frontend tech stack, is compatible with mainstream frameworks, and ensures long-term stability and extensibility. Community-driven feedback mechanisms allow your needs to be quickly integrated into project iterations.
-
-## Donation
-
-If you feel this project has reduced your development costs and solved problems in your work/life, you can support us through the following ways:
-
-<img src="https://www.qiniu.lingchen.kim/%E7%BB%84%202%402x%202.png" alt="Donation QR Code"/>
-
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=Daymychen/art-design-pro&type=Date)](https://www.star-history.com/#Daymychen/art-design-pro&Date)
+<br>
+<div align="center"><a href="#top">Back to Top</a></div>
+<br>
