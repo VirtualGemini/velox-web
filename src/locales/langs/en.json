@@ -140,10 +140,12 @@
       "user": "User"
     },
     "placeholder": {
+      "role": "Please select a login role",
       "username": "Please enter your account",
       "password": "Please enter your password",
       "slider": "Please slide to verify"
     },
+    "loadRolesFailed": "Failed to load login roles",
     "sliderText": "Please slide to verify",
     "sliderSuccessText": "Verification successful",
     "rememberPwd": "Remember password",

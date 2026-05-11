@@ -140,10 +140,12 @@
       "user": "普通用户"
     },
     "placeholder": {
+      "role": "请选择登录角色",
       "username": "请输入账号",
       "password": "请输入密码",
       "slider": "请拖动滑块完成验证"
     },
+    "loadRolesFailed": "获取登录角色失败",
     "sliderText": "按住滑块拖动",
     "sliderSuccessText": "验证成功",
     "rememberPwd": "记住密码",

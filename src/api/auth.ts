@@ -14,6 +14,12 @@ export function fetchLogin(params: Api.Auth.LoginParams) {
   })
 }
 
+export function fetchLoginRoles() {
+  return request.get<Api.Auth.LoginRole[]>({
+    url: '/api/auth/login-roles'
+  })
+}
+
 /**
  * 获取用户信息
  * @returns 用户信息

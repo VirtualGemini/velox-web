@@ -19,14 +19,18 @@
             style="margin-top: 25px"
           >
             <ElFormItem prop="account">
-              <ElSelect v-model="formData.account" @change="setupAccount">
+              <ElSelect
+                v-model="formData.account"
+                :placeholder="$t('login.placeholder.role')"
+                @change="setupAccount"
+              >
                 <ElOption
                   v-for="account in accounts"
-                  :key="account.key"
-                  :label="account.label"
-                  :value="account.key"
+                  :key="account.roleCode"
+                  :label="account.roleName"
+                  :value="account.roleCode"
                 >
-                  <span>{{ account.label }}</span>
+                  <span>{{ account.roleName }}</span>
                 </ElOption>
               </ElSelect>
             </ElFormItem>
@@ -112,8 +116,8 @@
   import { useUserStore } from '@/store/modules/user'
   import { useI18n } from 'vue-i18n'
   import { HttpError } from '@/utils/http/error'
-  import { fetchLogin } from '@/api/auth'
-  import { ElNotification, type FormInstance, type FormRules } from 'element-plus'
+  import { fetchLogin, fetchLoginRoles } from '@/api/auth'
+  import { ElMessage, ElNotification, type FormInstance, type FormRules } from 'element-plus'
   import { useSettingStore } from '@/store/modules/setting'
 
   defineOptions({ name: 'Login' })
@@ -128,39 +132,8 @@
     formKey.value++
   })
 
-  type AccountKey = 'super' | 'admin' | 'user'
-
-  export interface Account {
-    key: AccountKey
-    label: string
-    userName: string
-    password: string
-    roles: string[]
-  }
-
-  const accounts = computed<Account[]>(() => [
-    {
-      key: 'super',
-      label: t('login.roles.super'),
-      userName: 'Super',
-      password: '123456',
-      roles: ['R_SUPER']
-    },
-    {
-      key: 'admin',
-      label: t('login.roles.admin'),
-      userName: 'Admin',
-      password: '123456',
-      roles: ['R_ADMIN']
-    },
-    {
-      key: 'user',
-      label: t('login.roles.user'),
-      userName: 'User',
-      password: '123456',
-      roles: ['R_USER']
-    }
-  ])
+  type Account = Api.Auth.LoginRole
+  const accounts = ref<Account[]>([])
 
   const dragVerify = ref()
 
@@ -181,22 +154,28 @@
   })
 
   const rules = computed<FormRules>(() => ({
+    account: [{ required: true, message: t('login.placeholder.role'), trigger: 'change' }],
     username: [{ required: true, message: t('login.placeholder.username'), trigger: 'blur' }],
     password: [{ required: true, message: t('login.placeholder.password'), trigger: 'blur' }]
   }))
 
   const loading = ref(false)
 
-  onMounted(() => {
-    setupAccount('super')
+  onMounted(async () => {
+    try {
+      accounts.value = await fetchLoginRoles()
+    } catch (error) {
+      accounts.value = []
+      formData.account = ''
+      if (!(error instanceof HttpError)) {
+        ElMessage.error(t('login.loadRolesFailed'))
+      }
+    }
   })
 
   // 设置账号
-  const setupAccount = (key: AccountKey) => {
-    const selectedAccount = accounts.value.find((account: Account) => account.key === key)
-    formData.account = key
-    formData.username = selectedAccount?.userName ?? ''
-    formData.password = selectedAccount?.password ?? ''
+  const setupAccount = (roleCode: string) => {
+    formData.account = roleCode
   }
 
   // 登录
@@ -217,11 +196,12 @@
       loading.value = true
 
       // 登录请求
-      const { username, password } = formData
+      const { username, password, account } = formData
 
       const { token, refreshToken } = await fetchLogin({
         userName: username,
-        password
+        password,
+        roleCode: account
       })
 
       // 验证token
