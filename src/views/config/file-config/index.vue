@@ -36,24 +36,26 @@
     <ElDialog
       v-model="dialogVisible"
       :title="dialogMode === 'create' ? '新增文件配置' : '编辑文件配置'"
-      width="920px"
+      :width="dialogWidth"
       align-center
+      class="file-config-dialog"
       @close="handleDialogClose"
     >
       <ElForm
         ref="formRef"
         :model="formModel"
         :rules="formRules"
-        label-width="140px"
+        :label-width="formLabelWidth"
+        label-position="right"
         class="file-config-form"
       >
         <ElRow :gutter="16">
-          <ElCol :span="12">
+          <ElCol :span="formHalfSpan">
             <ElFormItem label="配置名称" prop="name">
               <ElInput v-model="formModel.name" maxlength="100" placeholder="请输入配置名称" />
             </ElFormItem>
           </ElCol>
-          <ElCol :span="12">
+          <ElCol :span="formHalfSpan">
             <ElFormItem label="存储类型" prop="storage">
               <ElSelect
                 v-model="formModel.storage"
@@ -382,7 +384,7 @@
                 <ElInput v-model="formModel.region" placeholder="为空时自动推断" />
               </ElFormItem>
             </ElCol>
-            <ElCol :span="12">
+            <ElCol :span="formHalfSpan">
               <ElFormItem>
                 <template #label>
                   <LabelTooltip
@@ -393,7 +395,7 @@
                 <ElSwitch v-model="formModel.enablePathStyleAccess" />
               </ElFormItem>
             </ElCol>
-            <ElCol :span="12">
+            <ElCol :span="formHalfSpan">
               <ElFormItem>
                 <template #label>
                   <LabelTooltip
@@ -449,6 +451,7 @@
   } from 'element-plus'
   import { ElIcon, ElTooltip } from 'element-plus'
   import { useRoute } from 'vue-router'
+  import { useWindowSize } from '@vueuse/core'
   import { useTable } from '@/hooks/core/useTable'
   import { useAuth } from '@/hooks/core/useAuth'
   import ArtButtonTable from '@/components/core/forms/art-button-table/index.vue'
@@ -503,6 +506,12 @@
 
   const { hasAuth } = useAuth()
   const route = useRoute()
+  const { width } = useWindowSize()
+
+  const isMobile = computed(() => width.value <= 640)
+  const dialogWidth = computed(() => (isMobile.value ? 'calc(100vw - 24px)' : '920px'))
+  const formHalfSpan = computed(() => (isMobile.value ? 24 : 12))
+  const formLabelWidth = computed(() => (isMobile.value ? '140px' : '140px'))
 
   const allStorageOptions = [
     { label: '数据库', value: STORAGE_TYPES.DB },
@@ -1193,6 +1202,68 @@
   .file-config-form {
     max-width: 820px;
     margin: 0 auto;
+  }
+
+  .file-config-dialog {
+    :deep(.el-dialog__body) {
+      padding-top: 12px;
+    }
+
+    :deep(.el-dialog__footer) {
+      padding-top: 8px;
+    }
+
+    :deep(.el-form-item__label) {
+      color: var(--el-text-color-regular);
+    }
+  }
+
+  @media (width <= 640px) {
+    .file-config-form {
+      max-width: 100%;
+    }
+
+    .file-config-dialog {
+      :deep(.el-form-item) {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        margin-bottom: 18px;
+      }
+
+      :deep(.el-form-item__label) {
+        display: flex;
+        justify-content: flex-start;
+        width: 100% !important;
+        height: auto !important;
+        min-height: 0;
+        padding-top: 0;
+        padding-bottom: 8px;
+        line-height: 1.4 !important;
+        text-align: left;
+        white-space: normal;
+      }
+
+      :deep(.el-form-item__label-wrap) {
+        display: block;
+        width: 100% !important;
+        margin: 0;
+      }
+
+      :deep(.el-form-item__label > .flex) {
+        display: inline-flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        align-items: center;
+      }
+
+      :deep(.el-form-item__content) {
+        display: flex;
+        width: 100%;
+        min-width: 0;
+        margin-left: 0 !important;
+      }
+    }
   }
 
   .file-config-operation-buttons {
