@@ -1,6 +1,7 @@
 <template>
   <div class="art-full-height">
     <ArtSearchBar
+      v-show="showSearchBar"
       v-model="searchForm"
       :items="searchItems"
       :showExpand="false"
@@ -8,8 +9,13 @@
       @reset="handleReset"
     />
 
-    <ElCard class="art-table-card" :style="{ 'margin-top': '12px' }">
-      <ArtTableHeader v-model:columns="columnChecks" :loading="loading" @refresh="refreshData">
+    <ElCard class="art-table-card" :style="{ 'margin-top': showSearchBar ? '12px' : '0' }">
+      <ArtTableHeader
+        v-model:columns="columnChecks"
+        v-model:showSearchBar="showSearchBar"
+        :loading="loading"
+        @refresh="refreshData"
+      >
         <template #left>
           <ElSpace wrap>
             <ElButton v-if="canAccess('system:file:upload')" @click="openUploadDialog" v-ripple>
@@ -83,6 +89,7 @@
     path: undefined,
     type: undefined
   })
+  const showSearchBar = ref(false)
 
   const searchItems = computed(() => [
     {

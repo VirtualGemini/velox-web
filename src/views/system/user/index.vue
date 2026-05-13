@@ -6,11 +6,21 @@
 <template>
   <div class="user-page art-full-height">
     <!-- 搜索栏 -->
-    <UserSearch v-model="searchForm" @search="handleSearch" @reset="resetSearchParams"></UserSearch>
+    <UserSearch
+      v-show="showSearchBar"
+      v-model="searchForm"
+      @search="handleSearch"
+      @reset="resetSearchParams"
+    ></UserSearch>
 
-    <ElCard class="art-table-card">
+    <ElCard class="art-table-card" :style="{ 'margin-top': showSearchBar ? '12px' : '0' }">
       <!-- 表格头部 -->
-      <ArtTableHeader v-model:columns="columnChecks" :loading="loading" @refresh="refreshData">
+      <ArtTableHeader
+        v-model:columns="columnChecks"
+        v-model:showSearchBar="showSearchBar"
+        :loading="loading"
+        @refresh="refreshData"
+      >
         <template #left>
           <ElSpace wrap>
             <ElButton v-if="hasAuth('system:user:create')" @click="showDialog('add')" v-ripple>
@@ -82,6 +92,8 @@
     userEmail: undefined,
     status: undefined
   })
+
+  const showSearchBar = ref(false)
 
   // 用户状态配置
   const USER_STATUS_CONFIG = {

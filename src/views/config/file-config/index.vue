@@ -1,6 +1,7 @@
 <template>
   <div class="art-full-height">
     <ArtSearchBar
+      v-show="showSearchBar"
       v-model="searchForm"
       :items="searchItems"
       :showExpand="false"
@@ -8,8 +9,13 @@
       @reset="handleReset"
     />
 
-    <ElCard class="art-table-card" :style="{ 'margin-top': '12px' }">
-      <ArtTableHeader v-model:columns="columnChecks" :loading="loading" @refresh="refreshData">
+    <ElCard class="art-table-card" :style="{ 'margin-top': showSearchBar ? '12px' : '0' }">
+      <ArtTableHeader
+        v-model:columns="columnChecks"
+        v-model:showSearchBar="showSearchBar"
+        :loading="loading"
+        @refresh="refreshData"
+      >
         <template #left>
           <ElSpace wrap>
             <ElButton
@@ -546,6 +552,7 @@
     name: undefined,
     storage: undefined
   })
+  const showSearchBar = ref(false)
 
   const searchItems = computed(() => [
     {
@@ -795,11 +802,11 @@
       case STORAGE_TYPES.FTP:
         return 'warning'
       case STORAGE_TYPES.SFTP:
-        return 'error'
+        return 'danger'
       case STORAGE_TYPES.S3:
         return 'primary'
       case STORAGE_TYPES.DB:
-        return 'default'
+        return 'success'
       default:
         return 'info'
     }

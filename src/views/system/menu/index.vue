@@ -3,6 +3,7 @@
   <div class="menu-page art-full-height">
     <!-- 搜索栏 -->
     <ArtSearchBar
+      v-show="showSearchBar"
       v-model="formFilters"
       :items="formItems"
       :showExpand="false"
@@ -10,12 +11,13 @@
       @search="handleSearch"
     />
 
-    <ElCard class="art-table-card">
+    <ElCard class="art-table-card" :style="{ 'margin-top': showSearchBar ? '12px' : '0' }">
       <!-- 表格头部 -->
       <ArtTableHeader
         :showZebra="false"
         :loading="loading"
         v-model:columns="columnChecks"
+        v-model:showSearchBar="showSearchBar"
         @refresh="handleRefresh"
       >
         <template #left>
@@ -75,6 +77,7 @@
   const loading = ref(false)
   const isExpanded = ref(false)
   const tableRef = ref()
+  const showSearchBar = ref(false)
 
   // 弹窗相关
   const dialogVisible = ref(false)
