@@ -47,7 +47,7 @@
           </div>
 
           <div class="mt-10">
-            <h3 class="text-sm font-medium">标签</h3>
+            <h3 class="text-sm font-medium">{{ t('pages.system.userCenter.profile.tags') }}</h3>
             <div class="flex flex-wrap justify-center mt-3.5">
               <div
                 v-for="item in lableList"
@@ -56,8 +56,10 @@
               >
                 {{ item }}
               </div>
-              <div v-if="!lableList.length" class="py-1 px-1.5 text-xs border border-g-300 rounded"
-                >暂无标签</div
+              <div
+                v-if="!lableList.length"
+                class="py-1 px-1.5 text-xs border border-g-300 rounded"
+                >{{ t('pages.system.userCenter.profile.noTags') }}</div
               >
             </div>
           </div>
@@ -65,7 +67,9 @@
       </div>
       <div class="flex-1 overflow-hidden max-md:w-full max-md:mt-3.5">
         <div class="art-card-sm">
-          <h1 class="p-4 text-xl font-normal border-b border-g-300">基本设置</h1>
+          <h1 class="p-4 text-xl font-normal border-b border-g-300">
+            {{ t('pages.system.userCenter.basicSettings.title') }}
+          </h1>
 
           <ElForm
             :model="form"
@@ -76,11 +80,22 @@
             label-position="top"
           >
             <ElRow>
-              <ElFormItem label="姓名" prop="realName">
+              <ElFormItem
+                :label="t('pages.system.userCenter.basicSettings.fields.realName')"
+                prop="realName"
+              >
                 <ElInput v-model="form.realName" :disabled="!isEdit" />
               </ElFormItem>
-              <ElFormItem label="性别" prop="sex" class="ml-5">
-                <ElSelect v-model="form.sex" placeholder="请选择性别" :disabled="!isEdit">
+              <ElFormItem
+                :label="t('pages.system.userCenter.basicSettings.fields.sex')"
+                prop="sex"
+                class="ml-5"
+              >
+                <ElSelect
+                  v-model="form.sex"
+                  :placeholder="t('pages.system.userCenter.basicSettings.placeholders.sex')"
+                  :disabled="!isEdit"
+                >
                   <ElOption
                     v-for="item in options"
                     :key="item.value"
@@ -92,37 +107,61 @@
             </ElRow>
 
             <ElRow>
-              <ElFormItem label="昵称" prop="nikeName">
+              <ElFormItem
+                :label="t('pages.system.userCenter.basicSettings.fields.nickname')"
+                prop="nikeName"
+              >
                 <ElInput v-model="form.nikeName" :disabled="!isEdit" />
               </ElFormItem>
-              <ElFormItem label="邮箱" prop="email" class="ml-5">
+              <ElFormItem
+                :label="t('pages.system.userCenter.basicSettings.fields.email')"
+                prop="email"
+                class="ml-5"
+              >
                 <ElInput v-model="form.email" :disabled="!isEdit" />
               </ElFormItem>
             </ElRow>
 
             <ElRow>
-              <ElFormItem label="手机" prop="mobile">
+              <ElFormItem
+                :label="t('pages.system.userCenter.basicSettings.fields.mobile')"
+                prop="mobile"
+              >
                 <ElInput v-model="form.mobile" :disabled="!isEdit" />
               </ElFormItem>
-              <ElFormItem label="地址" prop="address" class="ml-5">
+              <ElFormItem
+                :label="t('pages.system.userCenter.basicSettings.fields.address')"
+                prop="address"
+                class="ml-5"
+              >
                 <ElInput v-model="form.address" :disabled="!isEdit" />
               </ElFormItem>
             </ElRow>
 
-            <ElFormItem label="个人介绍" prop="des" class="h-32">
+            <ElFormItem
+              :label="t('pages.system.userCenter.basicSettings.fields.description')"
+              prop="des"
+              class="h-32"
+            >
               <ElInput type="textarea" :rows="4" v-model="form.des" :disabled="!isEdit" />
             </ElFormItem>
 
             <div class="flex-c justify-end [&_.el-button]:!w-27.5">
               <ElButton type="primary" class="w-22.5" v-ripple @click="edit">
-                {{ isEdit ? '保存' : '编辑' }}
+                {{
+                  isEdit
+                    ? t('pages.system.userCenter.actions.save')
+                    : t('pages.system.userCenter.actions.edit')
+                }}
               </ElButton>
             </div>
           </ElForm>
         </div>
 
         <div class="art-card-sm my-5">
-          <h1 class="p-4 text-xl font-normal border-b border-g-300">更改密码</h1>
+          <h1 class="p-4 text-xl font-normal border-b border-g-300">
+            {{ t('pages.system.userCenter.password.title') }}
+          </h1>
 
           <ElForm
             ref="pwdFormRef"
@@ -132,7 +171,10 @@
             label-width="86px"
             label-position="top"
           >
-            <ElFormItem label="当前密码" prop="password">
+            <ElFormItem
+              :label="t('pages.system.userCenter.password.fields.currentPassword')"
+              prop="password"
+            >
               <ElInput
                 v-model="pwdForm.password"
                 type="password"
@@ -141,7 +183,10 @@
               />
             </ElFormItem>
 
-            <ElFormItem label="新密码" prop="newPassword">
+            <ElFormItem
+              :label="t('pages.system.userCenter.password.fields.newPassword')"
+              prop="newPassword"
+            >
               <ElInput
                 v-model="pwdForm.newPassword"
                 type="password"
@@ -150,7 +195,10 @@
               />
             </ElFormItem>
 
-            <ElFormItem label="确认新密码" prop="confirmPassword">
+            <ElFormItem
+              :label="t('pages.system.userCenter.password.fields.confirmPassword')"
+              prop="confirmPassword"
+            >
               <ElInput
                 v-model="pwdForm.confirmPassword"
                 type="password"
@@ -161,7 +209,11 @@
 
             <div class="flex-c justify-end [&_.el-button]:!w-27.5">
               <ElButton type="primary" class="w-22.5" v-ripple @click="editPwd">
-                {{ isEditPwd ? '保存' : '编辑' }}
+                {{
+                  isEditPwd
+                    ? t('pages.system.userCenter.actions.save')
+                    : t('pages.system.userCenter.actions.edit')
+                }}
               </ElButton>
             </div>
           </ElForm>
@@ -181,11 +233,13 @@
   import { fetchFileUpload } from '@/api/file'
   import { useUserStore } from '@/store/modules/user'
   import type { FormInstance, FormRules, UploadRawFile } from 'element-plus'
+  import { useI18n } from 'vue-i18n'
 
   defineOptions({ name: 'UserCenter' })
 
   const userStore = useUserStore()
   const userInfo = computed(() => userStore.getUserInfo)
+  const { t } = useI18n()
 
   const isEdit = ref(false)
   const isEditPwd = ref(false)
@@ -210,31 +264,92 @@
 
   const rules = reactive<FormRules>({
     realName: [
-      { required: true, message: '请输入姓名', trigger: 'blur' },
-      { min: 2, max: 50, message: '长度在 2 到 50 个字符', trigger: 'blur' }
+      {
+        required: true,
+        message: t('pages.system.userCenter.basicSettings.validation.realNameRequired'),
+        trigger: 'blur'
+      },
+      {
+        min: 2,
+        max: 50,
+        message: t('pages.system.userCenter.basicSettings.validation.nameLength'),
+        trigger: 'blur'
+      }
     ],
     nikeName: [
-      { required: true, message: '请输入昵称', trigger: 'blur' },
-      { min: 2, max: 50, message: '长度在 2 到 50 个字符', trigger: 'blur' }
+      {
+        required: true,
+        message: t('pages.system.userCenter.basicSettings.validation.nicknameRequired'),
+        trigger: 'blur'
+      },
+      {
+        min: 2,
+        max: 50,
+        message: t('pages.system.userCenter.basicSettings.validation.nameLength'),
+        trigger: 'blur'
+      }
     ],
-    email: [{ required: true, message: '请输入邮箱', trigger: 'blur' }],
-    mobile: [{ required: true, message: '请输入手机号码', trigger: 'blur' }],
-    address: [{ required: true, message: '请输入地址', trigger: 'blur' }],
-    sex: [{ required: true, message: '请选择性别', trigger: 'change' }]
+    email: [
+      {
+        required: true,
+        message: t('pages.system.userCenter.basicSettings.validation.emailRequired'),
+        trigger: 'blur'
+      }
+    ],
+    mobile: [
+      {
+        required: true,
+        message: t('pages.system.userCenter.basicSettings.validation.mobileRequired'),
+        trigger: 'blur'
+      }
+    ],
+    address: [
+      {
+        required: true,
+        message: t('pages.system.userCenter.basicSettings.validation.addressRequired'),
+        trigger: 'blur'
+      }
+    ],
+    sex: [
+      {
+        required: true,
+        message: t('pages.system.userCenter.basicSettings.validation.sexRequired'),
+        trigger: 'change'
+      }
+    ]
   })
 
   const pwdRules = reactive<FormRules>({
-    password: [{ required: true, message: '请输入当前密码', trigger: 'blur' }],
+    password: [
+      {
+        required: true,
+        message: t('pages.system.userCenter.password.validation.currentPasswordRequired'),
+        trigger: 'blur'
+      }
+    ],
     newPassword: [
-      { required: true, message: '请输入新密码', trigger: 'blur' },
-      { min: 6, max: 32, message: '密码长度应在 6 到 32 个字符之间', trigger: 'blur' }
+      {
+        required: true,
+        message: t('pages.system.userCenter.password.validation.newPasswordRequired'),
+        trigger: 'blur'
+      },
+      {
+        min: 6,
+        max: 32,
+        message: t('pages.system.userCenter.password.validation.passwordLength'),
+        trigger: 'blur'
+      }
     ],
     confirmPassword: [
-      { required: true, message: '请再次输入新密码', trigger: 'blur' },
+      {
+        required: true,
+        message: t('pages.system.userCenter.password.validation.confirmPasswordRequired'),
+        trigger: 'blur'
+      },
       {
         validator: (_rule, value, callback) => {
           if (value !== pwdForm.newPassword) {
-            callback(new Error('两次输入的新密码不一致'))
+            callback(new Error(t('pages.system.userCenter.password.validation.passwordMismatch')))
             return
           }
           callback()
@@ -244,24 +359,37 @@
     ]
   })
 
-  const options = [
-    { value: 0, label: '未知' },
-    { value: 1, label: '男' },
-    { value: 2, label: '女' },
-    { value: 3, label: '其它' }
-  ]
+  const options = computed(() => [
+    { value: 0, label: t('pages.system.userCenter.sex.unknown') },
+    { value: 1, label: t('pages.system.userCenter.sex.male') },
+    { value: 2, label: t('pages.system.userCenter.sex.female') },
+    { value: 3, label: t('pages.system.userCenter.sex.other') }
+  ])
 
   const userAvatar = computed(() => userInfo.value.avatar || avatarImg)
   const displayName = computed(
-    () => userInfo.value.nickname || userInfo.value.userName || '未设置昵称'
+    () =>
+      userInfo.value.nickname ||
+      userInfo.value.userName ||
+      t('pages.system.userCenter.profile.defaults.nickname')
   )
-  const displayEmail = computed(() => userInfo.value.email || '未设置邮箱')
-  const displayPosition = computed(() => userInfo.value.position || '未设置岗位')
-  const displayAddress = computed(() => userInfo.value.address || '未设置地址')
-  const displayCompany = computed(() => userInfo.value.company || '未设置在职企业')
+  const displayEmail = computed(
+    () => userInfo.value.email || t('pages.system.userCenter.profile.defaults.email')
+  )
+  const displayPosition = computed(
+    () => userInfo.value.position || t('pages.system.userCenter.profile.defaults.position')
+  )
+  const displayAddress = computed(
+    () => userInfo.value.address || t('pages.system.userCenter.profile.defaults.address')
+  )
+  const displayCompany = computed(
+    () => userInfo.value.company || t('pages.system.userCenter.profile.defaults.company')
+  )
   const profileDescription = computed(
     () =>
-      userInfo.value.signature || userInfo.value.introduction || '这个人很神秘，还没有留下个人介绍'
+      userInfo.value.signature ||
+      userInfo.value.introduction ||
+      t('pages.system.userCenter.profile.defaults.description')
   )
   const lableList = computed(() => userInfo.value.tags || [])
 
@@ -297,9 +425,9 @@
       const avatarUrl = await fetchFileUpload(options.file, 'avatar')
       const nextUserInfo = await fetchUpdateUserAvatar({ avatarUrl })
       userStore.setUserInfo(nextUserInfo)
-      ElMessage.success('头像上传成功')
+      ElMessage.success(t('pages.system.userCenter.messages.avatarUploadSuccess'))
     } catch {
-      ElMessage.error('头像上传失败')
+      ElMessage.error(t('pages.system.userCenter.messages.avatarUploadFailed'))
     }
   }
 
@@ -308,11 +436,11 @@
     const isLt2M = (file.size || 0) / 1024 / 1024 < 2
 
     if (!isImage) {
-      ElMessage.error('只能上传图片文件!')
+      ElMessage.error(t('pages.system.userCenter.messages.onlyImageAllowed'))
       return false
     }
     if (!isLt2M) {
-      ElMessage.error('图片大小不能超过 2MB!')
+      ElMessage.error(t('pages.system.userCenter.messages.imageSizeLimit'))
       return false
     }
     return true
@@ -358,7 +486,7 @@
       company: userInfo.value.company || ''
     })
 
-    ElMessage.success('资料保存成功')
+    ElMessage.success(t('pages.system.userCenter.messages.profileSaveSuccess'))
     isEdit.value = false
   }
 
@@ -378,7 +506,7 @@
       confirmPassword: pwdForm.confirmPassword.trim()
     })
 
-    ElMessage.success('密码修改成功')
+    ElMessage.success(t('pages.system.userCenter.messages.passwordUpdateSuccess'))
     isEditPwd.value = false
     resetPwdForm()
   }

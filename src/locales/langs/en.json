@@ -456,6 +456,77 @@
           "deleteFailed": "Delete failed"
         }
       },
+      "userCenter": {
+        "actions": {
+          "edit": "Edit",
+          "save": "Save"
+        },
+        "profile": {
+          "tags": "Tags",
+          "noTags": "No tags",
+          "defaults": {
+            "nickname": "Nickname not set",
+            "email": "Email not set",
+            "position": "Position not set",
+            "address": "Address not set",
+            "company": "Company not set",
+            "description": "This person is mysterious and has not left a personal introduction yet"
+          }
+        },
+        "basicSettings": {
+          "title": "Basic Settings",
+          "fields": {
+            "realName": "Name",
+            "sex": "Gender",
+            "nickname": "Nickname",
+            "email": "Email",
+            "mobile": "Mobile",
+            "address": "Address",
+            "description": "Introduction"
+          },
+          "placeholders": {
+            "sex": "Please select gender"
+          },
+          "validation": {
+            "realNameRequired": "Please enter your name",
+            "nicknameRequired": "Please enter nickname",
+            "nameLength": "Length must be between 2 and 50 characters",
+            "emailRequired": "Please enter email",
+            "mobileRequired": "Please enter mobile number",
+            "addressRequired": "Please enter address",
+            "sexRequired": "Please select gender"
+          }
+        },
+        "password": {
+          "title": "Change Password",
+          "fields": {
+            "currentPassword": "Current Password",
+            "newPassword": "New Password",
+            "confirmPassword": "Confirm New Password"
+          },
+          "validation": {
+            "currentPasswordRequired": "Please enter current password",
+            "newPasswordRequired": "Please enter new password",
+            "confirmPasswordRequired": "Please enter the new password again",
+            "passwordLength": "Password length must be between 6 and 32 characters",
+            "passwordMismatch": "The two new passwords do not match"
+          }
+        },
+        "sex": {
+          "unknown": "Unknown",
+          "male": "Male",
+          "female": "Female",
+          "other": "Other"
+        },
+        "messages": {
+          "avatarUploadSuccess": "Avatar uploaded successfully",
+          "avatarUploadFailed": "Avatar upload failed",
+          "onlyImageAllowed": "Only image files can be uploaded!",
+          "imageSizeLimit": "Image size cannot exceed 2MB!",
+          "profileSaveSuccess": "Profile saved successfully",
+          "passwordUpdateSuccess": "Password updated successfully"
+        }
+      },
       "fileManage": {
         "actions": {
           "uploadFile": "Upload File",

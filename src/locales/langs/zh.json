@@ -456,6 +456,77 @@
           "deleteFailed": "删除失败"
         }
       },
+      "userCenter": {
+        "actions": {
+          "edit": "编辑",
+          "save": "保存"
+        },
+        "profile": {
+          "tags": "标签",
+          "noTags": "暂无标签",
+          "defaults": {
+            "nickname": "未设置昵称",
+            "email": "未设置邮箱",
+            "position": "未设置岗位",
+            "address": "未设置地址",
+            "company": "未设置在职企业",
+            "description": "这个人很神秘，还没有留下个人介绍"
+          }
+        },
+        "basicSettings": {
+          "title": "基本设置",
+          "fields": {
+            "realName": "姓名",
+            "sex": "性别",
+            "nickname": "昵称",
+            "email": "邮箱",
+            "mobile": "手机",
+            "address": "地址",
+            "description": "个人介绍"
+          },
+          "placeholders": {
+            "sex": "请选择性别"
+          },
+          "validation": {
+            "realNameRequired": "请输入姓名",
+            "nicknameRequired": "请输入昵称",
+            "nameLength": "长度在 2 到 50 个字符",
+            "emailRequired": "请输入邮箱",
+            "mobileRequired": "请输入手机号码",
+            "addressRequired": "请输入地址",
+            "sexRequired": "请选择性别"
+          }
+        },
+        "password": {
+          "title": "更改密码",
+          "fields": {
+            "currentPassword": "当前密码",
+            "newPassword": "新密码",
+            "confirmPassword": "确认新密码"
+          },
+          "validation": {
+            "currentPasswordRequired": "请输入当前密码",
+            "newPasswordRequired": "请输入新密码",
+            "confirmPasswordRequired": "请再次输入新密码",
+            "passwordLength": "密码长度应在 6 到 32 个字符之间",
+            "passwordMismatch": "两次输入的新密码不一致"
+          }
+        },
+        "sex": {
+          "unknown": "未知",
+          "male": "男",
+          "female": "女",
+          "other": "其它"
+        },
+        "messages": {
+          "avatarUploadSuccess": "头像上传成功",
+          "avatarUploadFailed": "头像上传失败",
+          "onlyImageAllowed": "只能上传图片文件!",
+          "imageSizeLimit": "图片大小不能超过 2MB!",
+          "profileSaveSuccess": "资料保存成功",
+          "passwordUpdateSuccess": "密码修改成功"
+        }
+      },
       "fileManage": {
         "actions": {
           "uploadFile": "上传文件",
