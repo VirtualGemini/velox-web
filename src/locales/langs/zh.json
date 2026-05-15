@@ -373,7 +373,6 @@
           }
         },
         "columns": {
-          "roleId": "角色ID",
           "roleName": "角色名称",
           "roleCode": "角色编码",
           "type": "角色类型",

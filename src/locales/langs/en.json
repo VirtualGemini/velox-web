@@ -373,7 +373,6 @@
           }
         },
         "columns": {
-          "roleId": "Role ID",
           "roleName": "Role Name",
           "roleCode": "Role Code",
           "type": "Role Type",

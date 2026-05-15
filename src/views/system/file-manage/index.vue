@@ -160,6 +160,11 @@
       },
       columnsFactory: () => [
         {
+          type: 'index',
+          label: t('table.column.index'),
+          minWidth: 60
+        },
+        {
           prop: 'name',
           label: 'pages.system.fileManage.columns.name',
           minWidth: 200,

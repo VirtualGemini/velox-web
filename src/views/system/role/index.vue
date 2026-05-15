@@ -122,11 +122,7 @@
       // 排除 apiParams 中的属性
       excludeParams: ['daterange'],
       columnsFactory: () => [
-        {
-          prop: 'roleId',
-          label: 'pages.system.role.columns.roleId',
-          minWidth: 100
-        },
+        { type: 'index', label: t('table.column.index'), minWidth: 60 },
         {
           prop: 'roleName',
           label: 'pages.system.role.columns.roleName',

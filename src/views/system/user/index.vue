@@ -189,7 +189,7 @@
       // },
       columnsFactory: () => [
         { type: 'selection' }, // 勾选列
-        { type: 'index', minWidth: 60 }, // 序号
+        { type: 'index', label: t('table.column.index'), minWidth: 60 },
         {
           prop: 'userInfo',
           label: 'pages.system.user.columns.userInfo',
