@@ -42,10 +42,10 @@
     return new Promise((resolve) => {
       setTimeout(() => {
         resolve([
-          { label: '在线', value: '1' },
-          { label: '离线', value: '2' },
-          { label: '异常', value: '3' },
-          { label: '注销', value: '4' }
+          { label: 'pages.system.user.status.online', value: '1' },
+          { label: 'pages.system.user.status.offline', value: '2' },
+          { label: 'pages.system.user.status.abnormal', value: '3' },
+          { label: 'pages.system.user.status.revoked', value: '4' }
         ])
       }, 1000)
     })
@@ -58,41 +58,38 @@
   // 表单配置
   const formItems = computed(() => [
     {
-      label: '用户名',
+      label: 'pages.system.user.search.userName',
       key: 'userName',
       type: 'input',
-      placeholder: '请输入用户名',
       clearable: true
     },
     {
-      label: '手机号',
+      label: 'pages.system.user.search.userPhone',
       key: 'userPhone',
       type: 'input',
-      props: { placeholder: '请输入手机号', maxlength: '11' }
+      props: { maxlength: '11' }
     },
     {
-      label: '邮箱',
+      label: 'pages.system.user.search.userEmail',
       key: 'userEmail',
-      type: 'input',
-      props: { placeholder: '请输入邮箱' }
+      type: 'input'
     },
     {
-      label: '状态',
+      label: 'pages.system.user.search.status',
       key: 'status',
       type: 'select',
       props: {
-        placeholder: '请选择状态',
         options: statusOptions.value
       }
     },
     {
-      label: '性别',
+      label: 'pages.system.user.search.userGender',
       key: 'userGender',
       type: 'radiogroup',
       props: {
         options: [
-          { label: '男', value: '1' },
-          { label: '女', value: '2' }
+          { label: 'pages.system.user.gender.male', value: '1' },
+          { label: 'pages.system.user.gender.female', value: '2' }
         ]
       }
     }
@@ -100,13 +97,11 @@
 
   // 事件
   function handleReset() {
-    console.log('重置表单')
     emit('reset')
   }
 
   async function handleSearch(params: Api.SystemManage.UserSearchParams) {
     await searchBarRef.value.validate()
     emit('search', params)
-    console.log('表单数据', params)
   }
 </script>

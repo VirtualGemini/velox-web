@@ -18,7 +18,7 @@
         <template #left>
           <ElSpace wrap>
             <ElButton v-if="hasAuth('system:role:create')" @click="showDialog('add')" v-ripple>
-              新增角色
+              {{ t('pages.system.role.actions.addRole') }}
             </ElButton>
           </ElSpace>
         </template>
@@ -68,6 +68,7 @@
   import RoleEditDialog from './modules/role-edit-dialog.vue'
   import RolePermissionDialog from './modules/role-permission-dialog.vue'
   import { ElTag, ElMessageBox } from 'element-plus'
+  import { useI18n } from 'vue-i18n'
 
   defineOptions({ name: 'Role' })
 
@@ -77,6 +78,7 @@
   }
 
   const { hasAuth } = useAuth()
+  const { t } = useI18n()
 
   // 搜索表单
   const searchForm = ref<RoleSearchFormParams>({
@@ -122,42 +124,42 @@
       columnsFactory: () => [
         {
           prop: 'roleId',
-          label: '角色ID',
+          label: 'pages.system.role.columns.roleId',
           minWidth: 100
         },
         {
           prop: 'roleName',
-          label: '角色名称',
+          label: 'pages.system.role.columns.roleName',
           minWidth: 120
         },
         {
           prop: 'roleCode',
-          label: '角色编码',
+          label: 'pages.system.role.columns.roleCode',
           minWidth: 120
         },
         {
           prop: 'type',
-          label: '角色类型',
+          label: 'pages.system.role.columns.type',
           minWidth: 100,
           formatter: (row) =>
             h(ElTag, { type: getRoleTypeTagType(row.type) }, () =>
-              row.type === 0 ? '内置' : '自定义'
+              row.type === 0 ? t('common.status.builtin') : t('common.status.custom')
             )
         },
         {
           prop: 'description',
-          label: '角色描述',
+          label: 'pages.system.role.columns.description',
           minWidth: 150,
           showOverflowTooltip: true
         },
         {
           prop: 'enabled',
-          label: '角色状态',
+          label: 'pages.system.role.columns.enabled',
           minWidth: 100,
           formatter: (row) => {
             const statusConfig = row.enabled
-              ? { type: 'success', text: '启用' }
-              : { type: 'warning', text: '禁用' }
+              ? { type: 'success', text: t('common.status.enabled') }
+              : { type: 'warning', text: t('common.status.disabled') }
             return h(
               ElTag,
               { type: statusConfig.type as 'success' | 'warning' },
@@ -167,13 +169,13 @@
         },
         {
           prop: 'createTime',
-          label: '创建日期',
+          label: 'pages.system.role.columns.createTime',
           minWidth: 180,
           sortable: true
         },
         {
           prop: 'operation',
-          label: '操作',
+          label: 'pages.system.role.columns.operation',
           width: 80,
           fixed: 'right',
           formatter: (row) =>
@@ -193,7 +195,7 @@
   const resolveRoleId = (row?: RoleListItem) => {
     const roleId = row?.roleId?.trim()
     if (!roleId) {
-      ElMessage.error('当前角色数据缺少 roleId，请确认列表接口返回内容')
+      ElMessage.error(t('pages.system.role.messages.missingRoleId'))
       return null
     }
     return roleId
@@ -204,7 +206,7 @@
       return
     }
     if (type === 'edit' && isSuperRole(row)) {
-      ElMessage.warning('最高权限角色不可编辑')
+      ElMessage.warning(t('pages.system.role.messages.superRoleCannotEdit'))
       return
     }
     dialogVisible.value = true
@@ -215,12 +217,12 @@
   const handleRoleSubmit = async (payload: Api.SystemManage.RoleSaveCommand) => {
     if (dialogType.value === 'add') {
       await fetchCreateRole(payload)
-      ElMessage.success('新增成功')
+      ElMessage.success(t('pages.system.role.messages.createSuccess'))
     } else {
       const roleId = resolveRoleId(currentRoleData.value)
       if (!roleId) return
       await fetchUpdateRole(roleId, payload)
-      ElMessage.success('修改成功')
+      ElMessage.success(t('pages.system.role.messages.updateSuccess'))
     }
     dialogVisible.value = false
     refreshData()
@@ -262,7 +264,7 @@
     const items: ButtonMoreItem[] = [
       {
         key: 'permission',
-        label: '菜单权限',
+        label: 'pages.system.role.actions.permission',
         icon: 'ri:user-3-line',
         auth: 'system:role:permission'
       }
@@ -271,7 +273,7 @@
     if (!isSuperRole(row)) {
       items.push({
         key: 'edit',
-        label: '编辑角色',
+        label: 'pages.system.role.actions.editRole',
         icon: 'ri:edit-2-line',
         auth: 'system:role:update'
       })
@@ -280,7 +282,7 @@
     if (!isSystemRole(row)) {
       items.push({
         key: 'delete',
-        label: '删除角色',
+        label: 'pages.system.role.actions.deleteRole',
         icon: 'ri:delete-bin-4-line',
         color: '#f56c6c',
         auth: 'system:role:delete'
@@ -292,23 +294,27 @@
 
   const deleteRole = (row: RoleListItem) => {
     if (isSystemRole(row)) {
-      ElMessage.warning('系统角色不可删除')
+      ElMessage.warning(t('pages.system.role.messages.systemRoleCannotDelete'))
       return
     }
-    ElMessageBox.confirm(`确定删除角色"${row.roleName}"吗？此操作不可恢复！`, '删除确认', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
+    ElMessageBox.confirm(
+      t('pages.system.role.messages.confirmDelete', { name: row.roleName }),
+      t('pages.system.role.messages.deleteTitle'),
+      {
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
+        type: 'warning'
+      }
+    )
       .then(async () => {
         const roleId = resolveRoleId(row)
         if (!roleId) return
         await fetchDeleteRole(roleId)
-        ElMessage.success('删除成功')
+        ElMessage.success(t('pages.system.role.messages.deleteSuccess'))
         refreshData()
       })
       .catch(() => {
-        ElMessage.info('已取消删除')
+        ElMessage.info(t('pages.system.role.messages.deleteCancelled'))
       })
   }
 </script>

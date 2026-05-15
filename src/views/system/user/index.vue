@@ -24,7 +24,7 @@
         <template #left>
           <ElSpace wrap>
             <ElButton v-if="hasAuth('system:user:create')" @click="showDialog('add')" v-ripple>
-              新增用户
+              {{ t('pages.system.user.actions.addUser') }}
             </ElButton>
           </ElSpace>
         </template>
@@ -68,6 +68,7 @@
   import UserDialog from './modules/user-dialog.vue'
   import { ElTag, ElMessageBox, ElImage } from 'element-plus'
   import { DialogType } from '@/types'
+  import { useI18n } from 'vue-i18n'
 
   defineOptions({ name: 'User' })
 
@@ -75,6 +76,7 @@
 
   const { hasAuth } = useAuth()
   const userStore = useUserStore()
+  const { t } = useI18n()
 
   // 弹窗相关
   const dialogType = ref<DialogType>('add')
@@ -97,10 +99,10 @@
 
   // 用户状态配置
   const USER_STATUS_CONFIG = {
-    '1': { type: 'success' as const, text: '在线' },
-    '2': { type: 'info' as const, text: '离线' },
-    '3': { type: 'warning' as const, text: '异常' },
-    '4': { type: 'danger' as const, text: '注销' }
+    '1': { type: 'success' as const, textKey: 'pages.system.user.status.online' },
+    '2': { type: 'info' as const, textKey: 'pages.system.user.status.offline' },
+    '3': { type: 'warning' as const, textKey: 'pages.system.user.status.abnormal' },
+    '4': { type: 'danger' as const, textKey: 'pages.system.user.status.revoked' }
   } as const
 
   /**
@@ -110,7 +112,7 @@
     return (
       USER_STATUS_CONFIG[status as keyof typeof USER_STATUS_CONFIG] || {
         type: 'info' as const,
-        text: '未知'
+        textKey: 'common.status.unknown'
       }
     )
   }
@@ -118,7 +120,7 @@
   const resolveUserId = (row?: Partial<UserListItem>) => {
     const userId = row?.userId?.trim()
     if (!userId) {
-      ElMessage.error('当前用户数据缺少 userId，请确认列表接口返回内容')
+      ElMessage.error(t('pages.system.user.messages.missingUserId'))
       return null
     }
     return userId
@@ -187,10 +189,10 @@
       // },
       columnsFactory: () => [
         { type: 'selection' }, // 勾选列
-        { type: 'index', minWidth: 60, label: '序号' }, // 序号
+        { type: 'index', minWidth: 60 }, // 序号
         {
           prop: 'userInfo',
-          label: '用户信息',
+          label: 'pages.system.user.columns.userInfo',
           minWidth: 280,
           // visible: false, // 默认是否显示列
           formatter: (row) => {
@@ -211,30 +213,30 @@
         },
         {
           prop: 'userGender',
-          label: '性别',
+          label: 'pages.system.user.columns.userGender',
           minWidth: 80,
           sortable: true,
           formatter: (row) => row.userGender
         },
-        { prop: 'userPhone', label: '手机号', minWidth: 180 },
+        { prop: 'userPhone', label: 'pages.system.user.columns.userPhone', minWidth: 180 },
         {
           prop: 'status',
-          label: '状态',
+          label: 'pages.system.user.columns.status',
           minWidth: 100,
           formatter: (row) => {
             const statusConfig = getUserStatusConfig(row.status)
-            return h(ElTag, { type: statusConfig.type }, () => statusConfig.text)
+            return h(ElTag, { type: statusConfig.type }, () => t(statusConfig.textKey))
           }
         },
         {
           prop: 'createTime',
-          label: '创建日期',
+          label: 'pages.system.user.columns.createTime',
           minWidth: 180,
           sortable: true
         },
         {
           prop: 'operation',
-          label: '操作',
+          label: 'pages.system.user.columns.operation',
           width: 120,
           fixed: 'right', // 固定列
           formatter: (row) =>
@@ -284,10 +286,13 @@
       return
     }
     if (type === 'edit' && !canEditUser(row)) {
-      ElMessage.warning(isCurrentLoginUser(row) ? '不可操作当前登录用户' : '无权限修改该用户')
+      ElMessage.warning(
+        isCurrentLoginUser(row)
+          ? t('pages.system.user.messages.cannotOperateCurrentUser')
+          : t('pages.system.user.messages.cannotEditUser')
+      )
       return
     }
-    console.log('打开弹窗:', { type, row })
     dialogType.value = type
     currentUserData.value = row || {}
     nextTick(() => {
@@ -300,22 +305,26 @@
    */
   const deleteUser = (row: UserListItem): void => {
     if (isCurrentLoginUser(row)) {
-      ElMessage.warning('当前登录用户不能删除自己')
+      ElMessage.warning(t('pages.system.user.messages.cannotDeleteSelf'))
       return
     }
     if (!canDeleteUser(row)) {
-      ElMessage.warning('无权限删除该用户')
+      ElMessage.warning(t('pages.system.user.messages.cannotDeleteUser'))
       return
     }
-    ElMessageBox.confirm(`确定要注销该用户吗？`, '注销用户', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'error'
-    }).then(async () => {
+    ElMessageBox.confirm(
+      t('pages.system.user.messages.confirmDelete'),
+      t('pages.system.user.messages.deleteTitle'),
+      {
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
+        type: 'error'
+      }
+    ).then(async () => {
       const userId = resolveUserId(row)
       if (!userId) return
       await fetchDeleteUser(userId)
-      ElMessage.success('注销成功')
+      ElMessage.success(t('pages.system.user.messages.deleteSuccess'))
       refreshData()
     })
   }
@@ -327,18 +336,18 @@
     try {
       if (dialogType.value === 'add') {
         await fetchCreateUser(payload)
-        ElMessage.success('添加成功')
+        ElMessage.success(t('pages.system.user.messages.createSuccess'))
       } else {
         const userId = resolveUserId(currentUserData.value)
         if (!userId) return
         await fetchUpdateUser(userId, payload)
-        ElMessage.success('更新成功')
+        ElMessage.success(t('pages.system.user.messages.updateSuccess'))
       }
       dialogVisible.value = false
       currentUserData.value = {}
       refreshData()
     } catch (error) {
-      console.error('提交失败:', error)
+      console.error('[user] submit failed:', error)
     }
   }
 
@@ -347,6 +356,5 @@
    */
   const handleSelectionChange = (selection: UserListItem[]): void => {
     selectedRows.value = selection
-    console.log('选中行数据:', selectedRows.value)
   }
 </script>

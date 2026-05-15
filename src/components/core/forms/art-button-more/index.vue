@@ -13,7 +13,7 @@
             >
               <div class="flex-c gap-2" :style="{ color: item.color }">
                 <ArtSvgIcon v-if="item.icon" :icon="item.icon" />
-                <span>{{ item.label }}</span>
+                <span>{{ resolveLabel(item.label) }}</span>
               </div>
             </ElDropdownItem>
           </template>
@@ -25,10 +25,12 @@
 
 <script setup lang="ts">
   import { useAuth } from '@/hooks/core/useAuth'
+  import { useI18n } from 'vue-i18n'
 
   defineOptions({ name: 'ArtButtonMore' })
 
   const { hasAuth } = useAuth()
+  const { t, te, locale } = useI18n()
 
   export interface ButtonMoreItem {
     /** 按钮标识，可用于点击事件 */
@@ -64,6 +66,11 @@
   const emit = defineEmits<{
     (e: 'click', item: ButtonMoreItem): void
   }>()
+
+  const resolveLabel = (label: string) => {
+    void locale.value
+    return te(label) ? t(label) : label
+  }
 
   const handleClick = (item: ButtonMoreItem) => {
     emit('click', item)

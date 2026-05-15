@@ -89,9 +89,7 @@
                   @update:model-value="(val) => updateColumnVisibility(item, val)"
                   :disabled="item.disabled"
                   class="flex-1 min-w-0 [&_.el-checkbox__label]:overflow-hidden [&_.el-checkbox__label]:text-ellipsis [&_.el-checkbox__label]:whitespace-nowrap"
-                  >{{
-                    item.label || (item.type === 'selection' ? t('table.selection') : '')
-                  }}</ElCheckbox
+                  >{{ getColumnLabel(item) }}</ElCheckbox
                 >
               </div>
             </VueDraggable>
@@ -134,7 +132,7 @@
 
   defineOptions({ name: 'ArtTableHeader' })
 
-  const { t } = useI18n()
+  const { t, te, locale } = useI18n()
 
   interface Props {
     /** 斑马纹 */
@@ -195,11 +193,22 @@
   }
 
   /** 表格大小选项配置 */
-  const tableSizeOptions = [
+  const resolveLocaleText = (text?: string) => {
+    if (!text) return ''
+    void locale.value
+    return te(text) ? t(text) : text
+  }
+
+  const getColumnLabel = (col: ColumnOption) => {
+    if (col.label) return resolveLocaleText(col.label)
+    return col.type === 'selection' ? t('table.selection') : ''
+  }
+
+  const tableSizeOptions = computed(() => [
     { value: TableSizeEnum.SMALL, label: t('table.sizeOptions.small') },
     { value: TableSizeEnum.DEFAULT, label: t('table.sizeOptions.default') },
     { value: TableSizeEnum.LARGE, label: t('table.sizeOptions.large') }
-  ]
+  ])
 
   const tableStore = useTableStore()
   const { tableSize, isZebra, isBorder, isHeaderBackground } = storeToRefs(tableStore)

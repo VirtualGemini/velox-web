@@ -25,9 +25,9 @@
           <template v-if="col.useHeaderSlot && col.prop" #header="headerScope">
             <slot
               :name="col.headerSlotName || `${col.prop}-header`"
-              v-bind="{ ...headerScope, prop: col.prop, label: col.label }"
+              v-bind="{ ...headerScope, prop: col.prop, label: resolveColumnLabel(col) }"
             >
-              {{ col.label }}
+              {{ resolveColumnLabel(col) }}
             </slot>
           </template>
           <template v-if="col.useSlot && col.prop" #default="slotScope">
@@ -48,7 +48,7 @@
 
       <template #empty>
         <div v-if="loading"></div>
-        <ElEmpty v-else :description="emptyText" :image-size="120" />
+        <ElEmpty v-else :description="resolvedEmptyText" :image-size="120" />
       </template>
     </ElTable>
 
@@ -75,6 +75,7 @@
   import { ref, computed, nextTick, watchEffect, getCurrentInstance, useAttrs } from 'vue'
   import type { ElTable, TableProps } from 'element-plus'
   import { storeToRefs } from 'pinia'
+  import { useI18n } from 'vue-i18n'
   import { ColumnOption } from '@/types'
   import { useTableStore } from '@/store/modules/table'
   import { useCommon } from '@/hooks/core/useCommon'
@@ -84,6 +85,7 @@
   defineOptions({ name: 'ArtTable' })
 
   const { width } = useWindowSize()
+  const { t, te, locale } = useI18n()
   const elTableRef = ref<InstanceType<typeof ElTable> | null>(null)
   const paginationRef = ref<HTMLElement>()
   const tableHeaderRef = ref<HTMLElement>()
@@ -144,7 +146,7 @@
     border: undefined,
     size: undefined,
     emptyHeight: '100%',
-    emptyText: '暂无数据',
+    emptyText: 'table.emptyText',
     showTableHeader: true
   })
   const instance = getCurrentInstance()
@@ -182,6 +184,18 @@
     ...DEFAULT_PAGINATION_OPTIONS,
     ...props.paginationOptions
   }))
+
+  const resolveLocaleText = (text?: string) => {
+    if (!text) return ''
+    void locale.value
+    return te(text) ? t(text) : text
+  }
+
+  const resolveColumnLabel = (col: ColumnOption) => resolveLocaleText(col.label)
+
+  const resolvedEmptyText = computed(() => {
+    return resolveLocaleText(props.emptyText) || t('table.emptyText')
+  })
 
   // 边框 (优先级：props > store)
   const border = computed(() => props.border ?? isBorder.value)
@@ -280,7 +294,7 @@
 
   // 清理列属性，移除插槽相关的自定义属性，确保它们不会被 ElTableColumn 错误解释
   const cleanColumnProps = (col: ColumnOption) => {
-    const columnProps = { ...col }
+    const columnProps = { ...col, label: resolveColumnLabel(col) }
     // 删除自定义的插槽控制属性
     delete columnProps.useHeaderSlot
     delete columnProps.headerSlotName

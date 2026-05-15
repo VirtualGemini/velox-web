@@ -36,7 +36,16 @@
     "tips": "提示",
     "cancel": "取消",
     "confirm": "确定",
-    "logOutTips": "您是否要退出登录?"
+    "logOutTips": "您是否要退出登录?",
+    "status": {
+      "enabled": "启用",
+      "disabled": "禁用",
+      "unknown": "未知",
+      "yes": "是",
+      "no": "否",
+      "builtin": "内置",
+      "custom": "自定义"
+    }
   },
   "search": {
     "placeholder": "搜索页面",
@@ -260,7 +269,299 @@
       "fileConfig": "文件配置"
     }
   },
+  "pages": {
+    "system": {
+      "user": {
+        "actions": {
+          "addUser": "新增用户"
+        },
+        "search": {
+          "userName": "用户名",
+          "userPhone": "手机号",
+          "userEmail": "邮箱",
+          "status": "状态",
+          "userGender": "性别"
+        },
+        "columns": {
+          "userInfo": "用户信息",
+          "userGender": "性别",
+          "userPhone": "手机号",
+          "status": "状态",
+          "createTime": "创建日期",
+          "operation": "操作"
+        },
+        "status": {
+          "online": "在线",
+          "offline": "离线",
+          "abnormal": "异常",
+          "revoked": "注销"
+        },
+        "gender": {
+          "male": "男",
+          "female": "女",
+          "other": "其它"
+        },
+        "dialog": {
+          "addTitle": "添加用户",
+          "editTitle": "编辑用户",
+          "fields": {
+            "username": "用户名",
+            "nickname": "昵称",
+            "email": "邮箱",
+            "phone": "手机号",
+            "password": "密码",
+            "gender": "性别",
+            "roleCodes": "角色"
+          },
+          "placeholders": {
+            "username": "请输入用户名",
+            "nickname": "请输入昵称",
+            "email": "请输入邮箱",
+            "phone": "请输入手机号",
+            "initialPassword": "请输入初始密码",
+            "passwordOptional": "留空表示不修改密码"
+          },
+          "validation": {
+            "usernameRequired": "请输入用户名",
+            "usernameLength": "长度在 2 到 20 个字符",
+            "nicknameRequired": "请输入昵称",
+            "emailInvalid": "请输入正确的邮箱格式",
+            "phoneRequired": "请输入手机号",
+            "phoneInvalid": "请输入正确的手机号格式",
+            "passwordRequired": "请输入密码",
+            "passwordLength": "密码长度应在 6 到 32 个字符之间",
+            "genderRequired": "请选择性别",
+            "roleRequired": "请选择角色"
+          }
+        },
+        "messages": {
+          "missingUserId": "当前用户数据缺少 userId，请确认列表接口返回内容",
+          "cannotOperateCurrentUser": "不可操作当前登录用户",
+          "cannotEditUser": "无权限修改该用户",
+          "cannotDeleteSelf": "当前登录用户不能删除自己",
+          "cannotDeleteUser": "无权限删除该用户",
+          "confirmDelete": "确定要注销该用户吗？",
+          "deleteTitle": "注销用户",
+          "deleteSuccess": "注销成功",
+          "createSuccess": "添加成功",
+          "updateSuccess": "更新成功"
+        }
+      },
+      "role": {
+        "actions": {
+          "addRole": "新增角色",
+          "permission": "菜单权限",
+          "editRole": "编辑角色",
+          "deleteRole": "删除角色"
+        },
+        "search": {
+          "roleName": "角色名称",
+          "roleCode": "角色编码",
+          "description": "角色描述",
+          "enabled": "角色状态",
+          "daterange": "创建日期",
+          "rangeSeparator": "至",
+          "placeholders": {
+            "daterange": "请选择日期范围",
+            "startDate": "开始日期",
+            "endDate": "结束日期"
+          },
+          "shortcuts": {
+            "today": "今日",
+            "lastWeek": "最近一周",
+            "lastMonth": "最近一个月"
+          }
+        },
+        "columns": {
+          "roleId": "角色ID",
+          "roleName": "角色名称",
+          "roleCode": "角色编码",
+          "type": "角色类型",
+          "description": "角色描述",
+          "enabled": "角色状态",
+          "createTime": "创建日期",
+          "operation": "操作"
+        },
+        "dialog": {
+          "addTitle": "新增角色",
+          "editTitle": "编辑角色",
+          "fields": {
+            "type": "角色类型",
+            "roleName": "角色名称",
+            "roleCode": "角色编码",
+            "description": "描述",
+            "enabled": "启用"
+          },
+          "placeholders": {
+            "roleName": "请输入角色名称",
+            "roleCode": "请输入角色编码",
+            "description": "请输入角色描述"
+          },
+          "validation": {
+            "roleNameRequired": "请输入角色名称",
+            "roleNameLength": "长度在 2 到 20 个字符",
+            "roleCodeRequired": "请输入角色编码",
+            "roleCodeLength": "长度在 2 到 50 个字符",
+            "descriptionRequired": "请输入角色描述"
+          }
+        },
+        "messages": {
+          "missingRoleId": "当前角色数据缺少 roleId，请确认列表接口返回内容",
+          "superRoleCannotEdit": "最高权限角色不可编辑",
+          "systemRoleCannotDelete": "系统角色不可删除",
+          "confirmDelete": "确定删除角色“{name}”吗？此操作不可恢复！",
+          "deleteTitle": "删除确认",
+          "deleteSuccess": "删除成功",
+          "deleteCancelled": "已取消删除",
+          "createSuccess": "新增成功",
+          "updateSuccess": "修改成功"
+        }
+      },
+      "menu": {
+        "actions": {
+          "addMenu": "添加菜单",
+          "addPermission": "新增权限",
+          "expand": "展开",
+          "collapse": "收起"
+        },
+        "search": {
+          "name": "菜单名称",
+          "route": "路由地址"
+        },
+        "columns": {
+          "title": "菜单名称",
+          "type": "菜单类型",
+          "route": "路由",
+          "auth": "权限标识",
+          "updateTime": "编辑时间",
+          "status": "状态",
+          "operation": "操作"
+        },
+        "types": {
+          "button": "按钮",
+          "directory": "目录",
+          "iframe": "内嵌",
+          "menu": "菜单",
+          "link": "外链"
+        },
+        "messages": {
+          "missingMenuId": "当前菜单数据缺少 id，请确认列表接口返回内容",
+          "fetchFailed": "获取菜单失败",
+          "authCount": "{count} 个权限标识",
+          "createSuccess": "新增成功",
+          "updateSuccess": "编辑成功",
+          "confirmDeleteMenu": "确定要删除该菜单吗？删除后无法恢复",
+          "confirmDeletePermission": "确定要删除该权限吗？删除后无法恢复",
+          "deleteSuccess": "删除成功",
+          "deleteFailed": "删除失败"
+        }
+      },
+      "fileManage": {
+        "actions": {
+          "uploadFile": "上传文件",
+          "upload": "上传"
+        },
+        "dialog": {
+          "title": "上传文件",
+          "dragHint": "拖拽文件到此处或",
+          "clickUpload": "点击上传"
+        },
+        "search": {
+          "path": "文件路径",
+          "type": "文件类型",
+          "placeholders": {
+            "type": "例如 image/jpeg"
+          }
+        },
+        "columns": {
+          "name": "文件名",
+          "type": "类型",
+          "size": "大小",
+          "url": "访问地址",
+          "path": "文件路径",
+          "createTime": "上传时间",
+          "operation": "操作"
+        },
+        "messages": {
+          "downloadUrlFailed": "获取下载地址失败",
+          "confirmDelete": "确定删除文件“{name}”吗？删除后无法恢复。",
+          "deleteTitle": "删除确认",
+          "deleteSuccess": "删除成功",
+          "selectFileFirst": "请选择文件",
+          "uploadSuccess": "上传成功",
+          "uploadFailed": "上传失败"
+        }
+      }
+    },
+    "config": {
+      "fileConfig": {
+        "actions": {
+          "addConfig": "新增配置",
+          "setMaster": "设为主配置",
+          "test": "测试"
+        },
+        "search": {
+          "name": "配置名称",
+          "storage": "存储类型"
+        },
+        "columns": {
+          "name": "配置名称",
+          "storage": "存储类型",
+          "master": "主配置",
+          "enabled": "状态",
+          "remark": "备注",
+          "updateTime": "更新时间",
+          "operation": "操作"
+        },
+        "storage": {
+          "db": "数据库",
+          "local": "本地磁盘",
+          "ftp": "FTP 服务器",
+          "sftp": "SFTP 服务器",
+          "s3": "S3 对象存储"
+        },
+        "messages": {
+          "missingConfigId": "当前配置缺少 id，请确认列表接口返回内容",
+          "enterName": "请输入配置名称",
+          "selectStorage": "请选择存储类型",
+          "enterBasePath": "请输入基础目录",
+          "enterDomain": "请输入访问域名",
+          "invalidDomain": "访问域名格式不正确",
+          "enterHost": "请输入 Host",
+          "enterPort": "请输入端口",
+          "enterValidPort": "请输入有效端口",
+          "enterUsername": "请输入用户名",
+          "enterPassword": "请输入密码",
+          "enterEndpoint": "请输入 Endpoint",
+          "enterBucket": "请输入 Bucket",
+          "enterAccessKey": "请输入 Access Key",
+          "enterAccessSecret": "请输入 Access Secret",
+          "completeUsernameAndPassword": "请补全用户名和密码",
+          "selectTransferMode": "请选择传输模式",
+          "completeEndpointAndBucket": "请补全 Endpoint 和 Bucket",
+          "completeAccessKeyAndSecret": "请补全 Access Key 和 Access Secret",
+          "invalidConfigJson": "配置 JSON 格式不正确",
+          "createSuccess": "新增成功",
+          "updateSuccess": "更新成功",
+          "confirmDisableMaster": "当前配置为主配置，禁用会导致上传文件失败或丢失，确认要禁用吗？",
+          "disableMasterTitle": "禁用主配置",
+          "enabledSuccess": "已启用",
+          "disabledSuccess": "已禁用",
+          "confirmSetDisabledMaster": "当前配置已被禁用，可能会导致文件上传失败或丢失，确认要更换吗？",
+          "confirmSetMaster": "确定将“{name}”设为主配置吗？",
+          "setMasterTitle": "设置主配置",
+          "setMasterSuccess": "已切换主配置",
+          "testSuccess": "测试成功",
+          "acknowledged": "我知道了",
+          "confirmDelete": "确定删除配置“{name}”吗？删除后无法恢复。",
+          "deleteTitle": "删除确认",
+          "deleteSuccess": "删除成功"
+        }
+      }
+    }
+  },
   "table": {
+    "emptyText": "暂无数据",
     "form": {
       "reset": "重置",
       "submit": "提交"

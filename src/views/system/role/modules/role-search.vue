@@ -47,8 +47,8 @@
    * 角色状态选项
    */
   const statusOptions = ref([
-    { label: '启用', value: true },
-    { label: '禁用', value: false }
+    { label: 'common.status.enabled', value: true },
+    { label: 'common.status.disabled', value: false }
   ])
 
   /**
@@ -56,52 +56,54 @@
    */
   const formItems = computed(() => [
     {
-      label: '角色名称',
+      label: 'pages.system.role.search.roleName',
       key: 'roleName',
       type: 'input',
-      placeholder: '请输入角色名称',
       clearable: true
     },
     {
-      label: '角色编码',
+      label: 'pages.system.role.search.roleCode',
       key: 'roleCode',
       type: 'input',
-      placeholder: '请输入角色编码',
       clearable: true
     },
     {
-      label: '角色描述',
+      label: 'pages.system.role.search.description',
       key: 'description',
       type: 'input',
-      placeholder: '请输入角色描述',
       clearable: true
     },
     {
-      label: '角色状态',
+      label: 'pages.system.role.search.enabled',
       key: 'enabled',
       type: 'select',
       props: {
-        placeholder: '请选择状态',
         options: statusOptions.value,
         clearable: true
       }
     },
     {
-      label: '创建日期',
+      label: 'pages.system.role.search.daterange',
       key: 'daterange',
       type: 'datetime',
       props: {
         style: { width: '100%' },
-        placeholder: '请选择日期范围',
+        placeholder: 'pages.system.role.search.placeholders.daterange',
         type: 'daterange',
-        rangeSeparator: '至',
-        startPlaceholder: '开始日期',
-        endPlaceholder: '结束日期',
+        rangeSeparator: 'pages.system.role.search.rangeSeparator',
+        startPlaceholder: 'pages.system.role.search.placeholders.startDate',
+        endPlaceholder: 'pages.system.role.search.placeholders.endDate',
         valueFormat: 'YYYY-MM-DD',
         shortcuts: [
-          { text: '今日', value: [new Date(), new Date()] },
-          { text: '最近一周', value: [new Date(Date.now() - 604800000), new Date()] },
-          { text: '最近一个月', value: [new Date(Date.now() - 2592000000), new Date()] }
+          { text: 'pages.system.role.search.shortcuts.today', value: [new Date(), new Date()] },
+          {
+            text: 'pages.system.role.search.shortcuts.lastWeek',
+            value: [new Date(Date.now() - 604800000), new Date()]
+          },
+          {
+            text: 'pages.system.role.search.shortcuts.lastMonth',
+            value: [new Date(Date.now() - 2592000000), new Date()]
+          }
         ]
       }
     }

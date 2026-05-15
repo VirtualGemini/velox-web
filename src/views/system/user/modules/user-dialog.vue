@@ -1,47 +1,67 @@
 <template>
   <ElDialog
     v-model="dialogVisible"
-    :title="dialogType === 'add' ? '添加用户' : '编辑用户'"
+    :title="
+      dialogType === 'add'
+        ? t('pages.system.user.dialog.addTitle')
+        : t('pages.system.user.dialog.editTitle')
+    "
     width="30%"
     align-center
   >
     <ElForm ref="formRef" :model="formData" :rules="rules" label-width="80px">
-      <ElFormItem label="用户名" prop="username">
-        <ElInput v-model="formData.username" placeholder="请输入用户名" />
+      <ElFormItem :label="t('pages.system.user.dialog.fields.username')" prop="username">
+        <ElInput
+          v-model="formData.username"
+          :placeholder="t('pages.system.user.dialog.placeholders.username')"
+        />
       </ElFormItem>
-      <ElFormItem label="昵称" prop="nickname">
-        <ElInput v-model="formData.nickname" placeholder="请输入昵称" />
+      <ElFormItem :label="t('pages.system.user.dialog.fields.nickname')" prop="nickname">
+        <ElInput
+          v-model="formData.nickname"
+          :placeholder="t('pages.system.user.dialog.placeholders.nickname')"
+        />
       </ElFormItem>
-      <ElFormItem label="邮箱" prop="email">
-        <ElInput v-model="formData.email" placeholder="请输入邮箱" />
+      <ElFormItem :label="t('pages.system.user.dialog.fields.email')" prop="email">
+        <ElInput
+          v-model="formData.email"
+          :placeholder="t('pages.system.user.dialog.placeholders.email')"
+        />
       </ElFormItem>
-      <ElFormItem label="手机号" prop="phone">
-        <ElInput v-model="formData.phone" placeholder="请输入手机号" />
+      <ElFormItem :label="t('pages.system.user.dialog.fields.phone')" prop="phone">
+        <ElInput
+          v-model="formData.phone"
+          :placeholder="t('pages.system.user.dialog.placeholders.phone')"
+        />
       </ElFormItem>
-      <ElFormItem v-if="dialogType === 'add'" label="密码" prop="password">
+      <ElFormItem
+        v-if="dialogType === 'add'"
+        :label="t('pages.system.user.dialog.fields.password')"
+        prop="password"
+      >
         <ElInput
           v-model="formData.password"
           type="password"
           show-password
-          placeholder="请输入初始密码"
+          :placeholder="t('pages.system.user.dialog.placeholders.initialPassword')"
         />
       </ElFormItem>
-      <ElFormItem v-else label="密码">
+      <ElFormItem v-else :label="t('pages.system.user.dialog.fields.password')">
         <ElInput
           v-model="formData.password"
           type="password"
           show-password
-          placeholder="留空表示不修改密码"
+          :placeholder="t('pages.system.user.dialog.placeholders.passwordOptional')"
         />
       </ElFormItem>
-      <ElFormItem label="性别" prop="gender">
+      <ElFormItem :label="t('pages.system.user.dialog.fields.gender')" prop="gender">
         <ElSelect v-model="formData.gender">
-          <ElOption label="男" :value="1" />
-          <ElOption label="女" :value="2" />
-          <ElOption label="其它" :value="3" />
+          <ElOption :label="t('pages.system.user.gender.male')" :value="1" />
+          <ElOption :label="t('pages.system.user.gender.female')" :value="2" />
+          <ElOption :label="t('pages.system.user.gender.other')" :value="3" />
         </ElSelect>
       </ElFormItem>
-      <ElFormItem label="角色" prop="roleCodes">
+      <ElFormItem :label="t('pages.system.user.dialog.fields.roleCodes')" prop="roleCodes">
         <ElSelect v-model="formData.roleCodes" multiple filterable>
           <ElOption
             v-for="role in roleList"
@@ -54,8 +74,8 @@
     </ElForm>
     <template #footer>
       <div class="dialog-footer">
-        <ElButton @click="dialogVisible = false">取消</ElButton>
-        <ElButton type="primary" @click="handleSubmit">提交</ElButton>
+        <ElButton @click="dialogVisible = false">{{ t('common.cancel') }}</ElButton>
+        <ElButton type="primary" @click="handleSubmit">{{ t('table.form.submit') }}</ElButton>
       </div>
     </template>
   </ElDialog>
@@ -64,6 +84,7 @@
 <script setup lang="ts">
   import { fetchGetRoleList } from '@/api/system-manage'
   import type { FormInstance, FormRules } from 'element-plus'
+  import { useI18n } from 'vue-i18n'
 
   interface Props {
     visible: boolean
@@ -78,6 +99,7 @@
 
   const props = defineProps<Props>()
   const emit = defineEmits<Emits>()
+  const { t } = useI18n()
 
   // 角色列表数据
   const roleList = ref<Api.SystemManage.RoleOption[]>([])
@@ -107,24 +129,53 @@
   // 表单验证规则
   const rules: FormRules = {
     username: [
-      { required: true, message: '请输入用户名', trigger: 'blur' },
-      { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
+      {
+        required: true,
+        message: t('pages.system.user.dialog.validation.usernameRequired'),
+        trigger: 'blur'
+      },
+      {
+        min: 2,
+        max: 20,
+        message: t('pages.system.user.dialog.validation.usernameLength'),
+        trigger: 'blur'
+      }
     ],
-    nickname: [{ required: true, message: '请输入昵称', trigger: 'blur' }],
-    email: [{ type: 'email', message: '请输入正确的邮箱格式', trigger: 'blur' }],
+    nickname: [
+      {
+        required: true,
+        message: t('pages.system.user.dialog.validation.nicknameRequired'),
+        trigger: 'blur'
+      }
+    ],
+    email: [
+      {
+        type: 'email',
+        message: t('pages.system.user.dialog.validation.emailInvalid'),
+        trigger: 'blur'
+      }
+    ],
     phone: [
-      { required: true, message: '请输入手机号', trigger: 'blur' },
-      { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号格式', trigger: 'blur' }
+      {
+        required: true,
+        message: t('pages.system.user.dialog.validation.phoneRequired'),
+        trigger: 'blur'
+      },
+      {
+        pattern: /^1[3-9]\d{9}$/,
+        message: t('pages.system.user.dialog.validation.phoneInvalid'),
+        trigger: 'blur'
+      }
     ],
     password: [
       {
         validator: (_rule, value, callback) => {
           if (dialogType.value === 'add' && !value) {
-            callback(new Error('请输入密码'))
+            callback(new Error(t('pages.system.user.dialog.validation.passwordRequired')))
             return
           }
           if (value && (value.length < 6 || value.length > 32)) {
-            callback(new Error('密码长度应在 6 到 32 个字符之间'))
+            callback(new Error(t('pages.system.user.dialog.validation.passwordLength')))
             return
           }
           callback()
@@ -132,8 +183,20 @@
         trigger: 'blur'
       }
     ],
-    gender: [{ required: true, message: '请选择性别', trigger: 'change' }],
-    roleCodes: [{ required: true, message: '请选择角色', trigger: 'change' }]
+    gender: [
+      {
+        required: true,
+        message: t('pages.system.user.dialog.validation.genderRequired'),
+        trigger: 'change'
+      }
+    ],
+    roleCodes: [
+      {
+        required: true,
+        message: t('pages.system.user.dialog.validation.roleRequired'),
+        trigger: 'change'
+      }
+    ]
   }
 
   /**

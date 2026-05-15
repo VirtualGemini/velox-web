@@ -19,7 +19,7 @@
         <template #left>
           <ElSpace wrap>
             <ElButton v-if="canAccess('system:file:upload')" @click="openUploadDialog" v-ripple>
-              上传文件
+              {{ t('pages.system.fileManage.actions.uploadFile') }}
             </ElButton>
           </ElSpace>
         </template>
@@ -37,7 +37,7 @@
 
     <ElDialog
       v-model="uploadDialogVisible"
-      title="上传文件"
+      :title="t('pages.system.fileManage.dialog.title')"
       width="520px"
       align-center
       @close="handleUploadDialogClose"
@@ -51,14 +51,17 @@
         :limit="1"
       >
         <ElIcon class="el-icon--upload"><Upload /></ElIcon>
-        <div class="el-upload__text"> 拖拽文件到此处或 <em>点击上传</em> </div>
+        <div class="el-upload__text">
+          {{ t('pages.system.fileManage.dialog.dragHint') }}
+          <em>{{ t('pages.system.fileManage.dialog.clickUpload') }}</em>
+        </div>
       </ElUpload>
 
       <template #footer>
-        <ElButton @click="handleUploadDialogClose">取消</ElButton>
-        <ElButton type="primary" :loading="uploadLoading" @click="handleUploadSubmit"
-          >上传</ElButton
-        >
+        <ElButton @click="handleUploadDialogClose">{{ t('common.cancel') }}</ElButton>
+        <ElButton type="primary" :loading="uploadLoading" @click="handleUploadSubmit">{{
+          t('pages.system.fileManage.actions.upload')
+        }}</ElButton>
       </template>
     </ElDialog>
   </div>
@@ -68,6 +71,7 @@
   import { ElButton, ElMessage, ElMessageBox, ElTag, ElUpload, ElIcon } from 'element-plus'
   import { Upload } from '@element-plus/icons-vue'
   import { useRoute } from 'vue-router'
+  import { useI18n } from 'vue-i18n'
   import { useTable } from '@/hooks/core/useTable'
   import { useAuth } from '@/hooks/core/useAuth'
   import ArtButtonTable from '@/components/core/forms/art-button-table/index.vue'
@@ -84,6 +88,7 @@
 
   const { hasAuth } = useAuth()
   const route = useRoute()
+  const { t } = useI18n()
 
   const searchForm = ref<Partial<FileQuery>>({
     path: undefined,
@@ -93,21 +98,20 @@
 
   const searchItems = computed(() => [
     {
-      label: '文件路径',
+      label: 'pages.system.fileManage.search.path',
       key: 'path',
       type: 'input',
       props: {
-        clearable: true,
-        placeholder: '请输入文件路径'
+        clearable: true
       }
     },
     {
-      label: '文件类型',
+      label: 'pages.system.fileManage.search.type',
       key: 'type',
       type: 'input',
       props: {
         clearable: true,
-        placeholder: '例如 image/jpeg'
+        placeholder: 'pages.system.fileManage.search.placeholders.type'
       }
     }
   ])
@@ -157,13 +161,13 @@
       columnsFactory: () => [
         {
           prop: 'name',
-          label: '文件名',
+          label: 'pages.system.fileManage.columns.name',
           minWidth: 200,
           showOverflowTooltip: true
         },
         {
           prop: 'type',
-          label: '类型',
+          label: 'pages.system.fileManage.columns.type',
           minWidth: 140,
           formatter: (row: FileRecord) =>
             h(
@@ -174,13 +178,13 @@
         },
         {
           prop: 'size',
-          label: '大小',
+          label: 'pages.system.fileManage.columns.size',
           minWidth: 100,
           formatter: (row: FileRecord) => formatFileSize(row.size)
         },
         {
           prop: 'url',
-          label: '访问地址',
+          label: 'pages.system.fileManage.columns.url',
           minWidth: 240,
           showOverflowTooltip: true,
           formatter: (row: FileRecord) =>
@@ -198,18 +202,18 @@
         },
         {
           prop: 'path',
-          label: '文件路径',
+          label: 'pages.system.fileManage.columns.path',
           minWidth: 200,
           showOverflowTooltip: true
         },
         {
           prop: 'createTime',
-          label: '上传时间',
+          label: 'pages.system.fileManage.columns.createTime',
           minWidth: 180
         },
         {
           prop: 'operation',
-          label: '操作',
+          label: 'pages.system.fileManage.columns.operation',
           width: 120,
           fixed: 'right',
           align: 'left',
@@ -272,18 +276,22 @@
       a.click()
       document.body.removeChild(a)
     } catch {
-      ElMessage.error('获取下载地址失败')
+      ElMessage.error(t('pages.system.fileManage.messages.downloadUrlFailed'))
     }
   }
 
   async function handleDelete(row: FileRecord) {
-    await ElMessageBox.confirm(`确定删除文件"${row.name}"吗？删除后无法恢复。`, '删除确认', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
+    await ElMessageBox.confirm(
+      t('pages.system.fileManage.messages.confirmDelete', { name: row.name }),
+      t('pages.system.fileManage.messages.deleteTitle'),
+      {
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
+        type: 'warning'
+      }
+    )
     await fetchFileDeleteById(row.id)
-    ElMessage.success('删除成功')
+    ElMessage.success(t('pages.system.fileManage.messages.deleteSuccess'))
     refreshData()
   }
 
@@ -321,17 +329,17 @@
 
   async function handleUploadSubmit() {
     if (!currentFile.value) {
-      ElMessage.warning('请选择文件')
+      ElMessage.warning(t('pages.system.fileManage.messages.selectFileFirst'))
       return
     }
     uploadLoading.value = true
     try {
       await fetchFileUpload(currentFile.value, 'file')
-      ElMessage.success('上传成功')
+      ElMessage.success(t('pages.system.fileManage.messages.uploadSuccess'))
       handleUploadDialogClose()
       refreshData()
     } catch {
-      ElMessage.error('上传失败')
+      ElMessage.error(t('pages.system.fileManage.messages.uploadFailed'))
     } finally {
       uploadLoading.value = false
     }

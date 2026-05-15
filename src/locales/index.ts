@@ -111,7 +111,7 @@ const i18n: I18n = createI18n(i18nOptions)
  * 翻译函数类型
  */
 interface Translation {
-  (key: string): string
+  (key: string, params?: Record<string, unknown>): string
 }
 
 /**
@@ -119,5 +119,21 @@ interface Translation {
  * 可在任何地方使用，无需导入 useI18n
  */
 export const $t = i18n.global.t as Translation
+
+/**
+ * 判断是否存在对应的国际化 key
+ */
+export const hasLocaleKey = (key?: string): boolean => {
+  if (!key) return false
+  return i18n.global.te(key)
+}
+
+/**
+ * 如果传入的是已注册的国际化 key，则返回翻译结果；否则原样返回
+ */
+export const translateIfExists = (text?: string, params?: Record<string, unknown>): string => {
+  if (!text) return ''
+  return hasLocaleKey(text) ? $t(text, params) : text
+}
 
 export default i18n

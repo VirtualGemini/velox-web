@@ -23,7 +23,7 @@
               @click="openCreateDialog"
               v-ripple
             >
-              新增配置
+              {{ t('pages.config.fileConfig.actions.addConfig') }}
             </ElButton>
           </ElSpace>
         </template>
@@ -457,6 +457,7 @@
   } from 'element-plus'
   import { ElIcon, ElTooltip } from 'element-plus'
   import { useRoute } from 'vue-router'
+  import { useI18n } from 'vue-i18n'
   import { useWindowSize } from '@vueuse/core'
   import { useTable } from '@/hooks/core/useTable'
   import { useAuth } from '@/hooks/core/useAuth'
@@ -512,6 +513,7 @@
 
   const { hasAuth } = useAuth()
   const route = useRoute()
+  const { t } = useI18n()
   const { width } = useWindowSize()
 
   const isMobile = computed(() => width.value <= 640)
@@ -519,33 +521,37 @@
   const formHalfSpan = computed(() => (isMobile.value ? 24 : 12))
   const formLabelWidth = computed(() => (isMobile.value ? '140px' : '140px'))
 
-  const allStorageOptions = [
-    { label: '数据库', value: STORAGE_TYPES.DB },
-    { label: '本地磁盘', value: STORAGE_TYPES.LOCAL },
-    { label: 'FTP 服务器', value: STORAGE_TYPES.FTP },
-    { label: 'SFTP 服务器', value: STORAGE_TYPES.SFTP },
-    { label: 'S3 对象存储', value: STORAGE_TYPES.S3 }
-  ]
+  const allStorageOptions = computed(() => [
+    { label: t('pages.config.fileConfig.storage.db'), value: STORAGE_TYPES.DB },
+    { label: t('pages.config.fileConfig.storage.local'), value: STORAGE_TYPES.LOCAL },
+    { label: t('pages.config.fileConfig.storage.ftp'), value: STORAGE_TYPES.FTP },
+    { label: t('pages.config.fileConfig.storage.sftp'), value: STORAGE_TYPES.SFTP },
+    { label: t('pages.config.fileConfig.storage.s3'), value: STORAGE_TYPES.S3 }
+  ])
 
-  const supportedStorageOptions = allStorageOptions.filter((item) =>
-    (
-      [
-        STORAGE_TYPES.DB,
-        STORAGE_TYPES.LOCAL,
-        STORAGE_TYPES.FTP,
-        STORAGE_TYPES.SFTP,
-        STORAGE_TYPES.S3
-      ] as StorageType[]
-    ).includes(item.value)
+  const supportedStorageOptions = computed(() =>
+    allStorageOptions.value.filter((item) =>
+      (
+        [
+          STORAGE_TYPES.DB,
+          STORAGE_TYPES.LOCAL,
+          STORAGE_TYPES.FTP,
+          STORAGE_TYPES.SFTP,
+          STORAGE_TYPES.S3
+        ] as StorageType[]
+      ).includes(item.value)
+    )
   )
 
   const dialogStorageOptions = computed(() => {
     if (dialogMode.value === 'create' || isSupportedStorage(formModel.storage)) {
-      return supportedStorageOptions
+      return supportedStorageOptions.value
     }
 
-    const currentOption = allStorageOptions.find((item) => item.value === formModel.storage)
-    return currentOption ? [currentOption, ...supportedStorageOptions] : supportedStorageOptions
+    const currentOption = allStorageOptions.value.find((item) => item.value === formModel.storage)
+    return currentOption
+      ? [currentOption, ...supportedStorageOptions.value]
+      : supportedStorageOptions.value
   })
 
   const searchForm = ref<Partial<FileConfigQuery>>({
@@ -556,22 +562,20 @@
 
   const searchItems = computed(() => [
     {
-      label: '配置名称',
+      label: 'pages.config.fileConfig.search.name',
       key: 'name',
       type: 'input',
       props: {
-        clearable: true,
-        placeholder: '请输入配置名称'
+        clearable: true
       }
     },
     {
-      label: '存储类型',
+      label: 'pages.config.fileConfig.search.storage',
       key: 'storage',
       type: 'select',
       props: {
         clearable: true,
-        placeholder: '请选择存储类型',
-        options: allStorageOptions
+        options: allStorageOptions.value
       }
     }
   ])
@@ -648,30 +652,92 @@
         callback()
         return
       }
-      callback(isValidHttpUrl(domain) ? undefined : new Error('访问域名格式不正确'))
+      callback(
+        isValidHttpUrl(domain)
+          ? undefined
+          : new Error(t('pages.config.fileConfig.messages.invalidDomain'))
+      )
       return
     }
 
     if (!domain) {
-      callback(new Error('请输入访问域名'))
+      callback(new Error(t('pages.config.fileConfig.messages.enterDomain')))
       return
     }
-    callback(isValidHttpUrl(domain) ? undefined : new Error('访问域名格式不正确'))
+    callback(
+      isValidHttpUrl(domain)
+        ? undefined
+        : new Error(t('pages.config.fileConfig.messages.invalidDomain'))
+    )
   }
 
   const formRules = reactive<FormRules<FileConfigFormModel>>({
-    name: [{ required: true, message: '请输入配置名称', trigger: 'blur' }],
-    storage: [{ required: true, message: '请选择存储类型', trigger: 'change' }],
-    basePath: [{ required: true, message: '请输入基础目录', trigger: 'blur' }],
+    name: [
+      { required: true, message: t('pages.config.fileConfig.messages.enterName'), trigger: 'blur' }
+    ],
+    storage: [
+      {
+        required: true,
+        message: t('pages.config.fileConfig.messages.selectStorage'),
+        trigger: 'change'
+      }
+    ],
+    basePath: [
+      {
+        required: true,
+        message: t('pages.config.fileConfig.messages.enterBasePath'),
+        trigger: 'blur'
+      }
+    ],
     domain: [{ validator: validateDomain, trigger: 'blur' }],
-    host: [{ required: true, message: '请输入 Host', trigger: 'blur' }],
-    port: [{ required: true, message: '请输入端口', trigger: 'blur' }],
-    username: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
-    password: [{ required: true, message: '请输入密码', trigger: 'blur' }],
-    endpoint: [{ required: true, message: '请输入 Endpoint', trigger: 'blur' }],
-    bucket: [{ required: true, message: '请输入 Bucket', trigger: 'blur' }],
-    accessKey: [{ required: true, message: '请输入 Access Key', trigger: 'blur' }],
-    accessSecret: [{ required: true, message: '请输入 Access Secret', trigger: 'blur' }]
+    host: [
+      { required: true, message: t('pages.config.fileConfig.messages.enterHost'), trigger: 'blur' }
+    ],
+    port: [
+      { required: true, message: t('pages.config.fileConfig.messages.enterPort'), trigger: 'blur' }
+    ],
+    username: [
+      {
+        required: true,
+        message: t('pages.config.fileConfig.messages.enterUsername'),
+        trigger: 'blur'
+      }
+    ],
+    password: [
+      {
+        required: true,
+        message: t('pages.config.fileConfig.messages.enterPassword'),
+        trigger: 'blur'
+      }
+    ],
+    endpoint: [
+      {
+        required: true,
+        message: t('pages.config.fileConfig.messages.enterEndpoint'),
+        trigger: 'blur'
+      }
+    ],
+    bucket: [
+      {
+        required: true,
+        message: t('pages.config.fileConfig.messages.enterBucket'),
+        trigger: 'blur'
+      }
+    ],
+    accessKey: [
+      {
+        required: true,
+        message: t('pages.config.fileConfig.messages.enterAccessKey'),
+        trigger: 'blur'
+      }
+    ],
+    accessSecret: [
+      {
+        required: true,
+        message: t('pages.config.fileConfig.messages.enterAccessSecret'),
+        trigger: 'blur'
+      }
+    ]
   })
 
   const {
@@ -700,26 +766,28 @@
       columnsFactory: () => [
         {
           prop: 'name',
-          label: '配置名称',
+          label: 'pages.config.fileConfig.columns.name',
           minWidth: 160
         },
         {
           prop: 'storage',
-          label: '存储类型',
+          label: 'pages.config.fileConfig.columns.storage',
           minWidth: 120,
           formatter: (row: FileConfig) =>
             h(ElTag, { type: getStorageTagType(row.storage) }, () => getStorageLabel(row.storage))
         },
         {
           prop: 'master',
-          label: '主配置',
+          label: 'pages.config.fileConfig.columns.master',
           minWidth: 100,
           formatter: (row: FileConfig) =>
-            h(ElTag, { type: row.master ? 'success' : 'info' }, () => (row.master ? '是' : '否'))
+            h(ElTag, { type: row.master ? 'success' : 'info' }, () =>
+              row.master ? t('common.status.yes') : t('common.status.no')
+            )
         },
         {
           prop: 'enabled',
-          label: '状态',
+          label: 'pages.config.fileConfig.columns.enabled',
           minWidth: 100,
           formatter: (row: FileConfig) =>
             h(ElSwitch, {
@@ -730,19 +798,19 @@
         },
         {
           prop: 'remark',
-          label: '备注',
+          label: 'pages.config.fileConfig.columns.remark',
           minWidth: 180,
           showOverflowTooltip: true,
           formatter: (row: FileConfig) => row.remark || '-'
         },
         {
           prop: 'updateTime',
-          label: '更新时间',
+          label: 'pages.config.fileConfig.columns.updateTime',
           minWidth: 180
         },
         {
           prop: 'operation',
-          label: '操作',
+          label: 'pages.config.fileConfig.columns.operation',
           width: 150,
           fixed: 'right',
           align: 'left',
@@ -792,7 +860,10 @@
   }
 
   function getStorageLabel(storage: number) {
-    return allStorageOptions.find((item) => item.value === storage)?.label || `未知(${storage})`
+    return (
+      allStorageOptions.value.find((item) => item.value === storage)?.label ||
+      `${t('common.status.unknown')}(${storage})`
+    )
   }
 
   function getStorageTagType(storage: number) {
@@ -816,11 +887,19 @@
     const moreItems: ReturnType<typeof h>[] = []
 
     if (canAccess('system:file-config:update') && !row.master && isSupportedStorage(row.storage)) {
-      moreItems.push(h(ElDropdownItem, { onClick: () => handleSetMaster(row) }, () => '设为主配置'))
+      moreItems.push(
+        h(ElDropdownItem, { onClick: () => handleSetMaster(row) }, () =>
+          t('pages.config.fileConfig.actions.setMaster')
+        )
+      )
     }
 
     if (canAccess('system:file-config:query') && isSupportedStorage(row.storage)) {
-      moreItems.push(h(ElDropdownItem, { onClick: () => handleTestConfig(row) }, () => '测试'))
+      moreItems.push(
+        h(ElDropdownItem, { onClick: () => handleTestConfig(row) }, () =>
+          t('pages.config.fileConfig.actions.test')
+        )
+      )
     }
 
     return h(
@@ -850,7 +929,7 @@
   function resolveConfigId(row?: Pick<FileConfig, 'id'>) {
     const configId = row?.id?.trim()
     if (!configId) {
-      ElMessage.error('当前配置缺少 id，请确认列表接口返回内容')
+      ElMessage.error(t('pages.config.fileConfig.messages.missingConfigId'))
       return null
     }
     return configId
@@ -962,7 +1041,7 @@
 
     if (formModel.storage === STORAGE_TYPES.LOCAL) {
       if (!formModel.basePath.trim()) {
-        ElMessage.error('请输入基础目录')
+        ElMessage.error(t('pages.config.fileConfig.messages.enterBasePath'))
         return false
       }
       return true
@@ -970,27 +1049,27 @@
 
     if (formModel.storage === STORAGE_TYPES.FTP || formModel.storage === STORAGE_TYPES.SFTP) {
       if (!formModel.host.trim()) {
-        ElMessage.error('请输入 Host')
+        ElMessage.error(t('pages.config.fileConfig.messages.enterHost'))
         return false
       }
       if (!formModel.port || formModel.port < 1 || formModel.port > 65535) {
-        ElMessage.error('请输入有效端口')
+        ElMessage.error(t('pages.config.fileConfig.messages.enterValidPort'))
         return false
       }
       if (!formModel.username.trim() || !formModel.password.trim()) {
-        ElMessage.error('请补全用户名和密码')
+        ElMessage.error(t('pages.config.fileConfig.messages.completeUsernameAndPassword'))
         return false
       }
       if (!formModel.basePath.trim()) {
-        ElMessage.error('请输入基础目录')
+        ElMessage.error(t('pages.config.fileConfig.messages.enterBasePath'))
         return false
       }
       if (formModel.domain.trim() && !isValidHttpUrl(formModel.domain.trim())) {
-        ElMessage.error('访问域名格式不正确')
+        ElMessage.error(t('pages.config.fileConfig.messages.invalidDomain'))
         return false
       }
       if (formModel.storage === STORAGE_TYPES.FTP && !formModel.ftpMode.trim()) {
-        ElMessage.error('请选择传输模式')
+        ElMessage.error(t('pages.config.fileConfig.messages.selectTransferMode'))
         return false
       }
       return true
@@ -998,11 +1077,11 @@
 
     if (formModel.storage === STORAGE_TYPES.S3) {
       if (!formModel.endpoint.trim() || !formModel.bucket.trim()) {
-        ElMessage.error('请补全 Endpoint 和 Bucket')
+        ElMessage.error(t('pages.config.fileConfig.messages.completeEndpointAndBucket'))
         return false
       }
       if (!formModel.accessKey.trim() || !formModel.accessSecret.trim()) {
-        ElMessage.error('请补全 Access Key 和 Access Secret')
+        ElMessage.error(t('pages.config.fileConfig.messages.completeAccessKeyAndSecret'))
         return false
       }
       return true
@@ -1012,7 +1091,7 @@
       JSON.parse(formModel.configJson)
       return true
     } catch {
-      ElMessage.error('配置 JSON 格式不正确')
+      ElMessage.error(t('pages.config.fileConfig.messages.invalidConfigJson'))
       return false
     }
   }
@@ -1101,11 +1180,11 @@
       const payload = buildPayload()
       if (dialogMode.value === 'create') {
         await fetchFileConfigCreate(payload)
-        ElMessage.success('新增成功')
+        ElMessage.success(t('pages.config.fileConfig.messages.createSuccess'))
       } else {
         payload.id = currentEditId.value
         await fetchFileConfigUpdate(payload)
-        ElMessage.success('更新成功')
+        ElMessage.success(t('pages.config.fileConfig.messages.updateSuccess'))
       }
       handleDialogClose()
       refreshData()
@@ -1137,11 +1216,11 @@
 
     if (!val && row.master) {
       await ElMessageBox.confirm(
-        '当前配置为主配置，禁用会导致上传文件失败或丢失，确认要禁用吗？',
-        '禁用主配置',
+        t('pages.config.fileConfig.messages.confirmDisableMaster'),
+        t('pages.config.fileConfig.messages.disableMasterTitle'),
         {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
+          confirmButtonText: t('common.confirm'),
+          cancelButtonText: t('common.cancel'),
           type: 'warning'
         }
       )
@@ -1149,7 +1228,11 @@
 
     await fetchFileConfigUpdateEnabled(configId, val ? 1 : 0)
     row.enabled = val ? 1 : 0
-    ElMessage.success(val ? '已启用' : '已禁用')
+    ElMessage.success(
+      val
+        ? t('pages.config.fileConfig.messages.enabledSuccess')
+        : t('pages.config.fileConfig.messages.disabledSuccess')
+    )
   }
 
   async function handleSetMaster(row: FileConfig) {
@@ -1158,24 +1241,28 @@
 
     if (row.enabled !== 1) {
       await ElMessageBox.confirm(
-        '当前配置已被禁用，可能会导致文件上传失败或丢失，确认要更换吗？',
-        '设置主配置',
+        t('pages.config.fileConfig.messages.confirmSetDisabledMaster'),
+        t('pages.config.fileConfig.messages.setMasterTitle'),
         {
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
+          confirmButtonText: t('common.confirm'),
+          cancelButtonText: t('common.cancel'),
           type: 'warning'
         }
       )
     } else {
-      await ElMessageBox.confirm(`确定将"${row.name}"设为主配置吗？`, '设置主配置', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      })
+      await ElMessageBox.confirm(
+        t('pages.config.fileConfig.messages.confirmSetMaster', { name: row.name }),
+        t('pages.config.fileConfig.messages.setMasterTitle'),
+        {
+          confirmButtonText: t('common.confirm'),
+          cancelButtonText: t('common.cancel'),
+          type: 'warning'
+        }
+      )
     }
 
     await fetchFileConfigSetMaster(configId)
-    ElMessage.success('已切换主配置')
+    ElMessage.success(t('pages.config.fileConfig.messages.setMasterSuccess'))
     refreshData()
   }
 
@@ -1184,8 +1271,8 @@
     if (!configId) return
 
     const url = await fetchFileConfigTest(configId)
-    await ElMessageBox.alert(url, '测试成功', {
-      confirmButtonText: '我知道了'
+    await ElMessageBox.alert(url, t('pages.config.fileConfig.messages.testSuccess'), {
+      confirmButtonText: t('pages.config.fileConfig.messages.acknowledged')
     })
   }
 
@@ -1193,14 +1280,18 @@
     const configId = resolveConfigId(row)
     if (!configId) return
 
-    await ElMessageBox.confirm(`确定删除配置"${row.name}"吗？删除后无法恢复。`, '删除确认', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    })
+    await ElMessageBox.confirm(
+      t('pages.config.fileConfig.messages.confirmDelete', { name: row.name }),
+      t('pages.config.fileConfig.messages.deleteTitle'),
+      {
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
+        type: 'warning'
+      }
+    )
 
     await fetchFileConfigDelete(configId)
-    ElMessage.success('删除成功')
+    ElMessage.success(t('pages.config.fileConfig.messages.deleteSuccess'))
     refreshData()
   }
 </script>

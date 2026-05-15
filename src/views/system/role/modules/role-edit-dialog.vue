@@ -1,45 +1,59 @@
 <template>
   <ElDialog
     v-model="visible"
-    :title="dialogType === 'add' ? '新增角色' : '编辑角色'"
+    :title="
+      dialogType === 'add'
+        ? t('pages.system.role.dialog.addTitle')
+        : t('pages.system.role.dialog.editTitle')
+    "
     width="30%"
     align-center
     @close="handleClose"
   >
     <ElForm ref="formRef" :model="form" :rules="rules" label-width="120px">
-      <ElFormItem v-if="dialogType === 'edit'" label="角色类型">
+      <ElFormItem v-if="dialogType === 'edit'" :label="t('pages.system.role.dialog.fields.type')">
         <ElInput
-          :model-value="form.typeName || (isSystemRole ? '系统角色' : '自定义角色')"
+          :model-value="
+            form.typeName || (isSystemRole ? t('common.status.builtin') : t('common.status.custom'))
+          "
           disabled
         />
       </ElFormItem>
-      <ElFormItem label="角色名称" prop="roleName">
-        <ElInput v-model="form.roleName" placeholder="请输入角色名称" />
+      <ElFormItem :label="t('pages.system.role.dialog.fields.roleName')" prop="roleName">
+        <ElInput
+          v-model="form.roleName"
+          :placeholder="t('pages.system.role.dialog.placeholders.roleName')"
+        />
       </ElFormItem>
-      <ElFormItem label="角色编码" prop="roleCode">
-        <ElInput v-model="form.roleCode" :disabled="isSystemRole" placeholder="请输入角色编码" />
+      <ElFormItem :label="t('pages.system.role.dialog.fields.roleCode')" prop="roleCode">
+        <ElInput
+          v-model="form.roleCode"
+          :disabled="isSystemRole"
+          :placeholder="t('pages.system.role.dialog.placeholders.roleCode')"
+        />
       </ElFormItem>
-      <ElFormItem label="描述" prop="description">
+      <ElFormItem :label="t('pages.system.role.dialog.fields.description')" prop="description">
         <ElInput
           v-model="form.description"
           type="textarea"
           :rows="3"
-          placeholder="请输入角色描述"
+          :placeholder="t('pages.system.role.dialog.placeholders.description')"
         />
       </ElFormItem>
-      <ElFormItem label="启用">
+      <ElFormItem :label="t('pages.system.role.dialog.fields.enabled')">
         <ElSwitch v-model="form.enabled" />
       </ElFormItem>
     </ElForm>
     <template #footer>
-      <ElButton @click="handleClose">取消</ElButton>
-      <ElButton type="primary" @click="handleSubmit">提交</ElButton>
+      <ElButton @click="handleClose">{{ t('common.cancel') }}</ElButton>
+      <ElButton type="primary" @click="handleSubmit">{{ t('table.form.submit') }}</ElButton>
     </template>
   </ElDialog>
 </template>
 
 <script setup lang="ts">
   import type { FormInstance, FormRules } from 'element-plus'
+  import { useI18n } from 'vue-i18n'
 
   type RoleListItem = Api.SystemManage.RoleListItem
 
@@ -61,6 +75,7 @@
   })
 
   const emit = defineEmits<Emits>()
+  const { t } = useI18n()
 
   const formRef = ref<FormInstance>()
   const isSystemRole = computed(() => props.dialogType === 'edit' && props.roleData?.type === 0)
@@ -78,14 +93,38 @@
    */
   const rules = reactive<FormRules>({
     roleName: [
-      { required: true, message: '请输入角色名称', trigger: 'blur' },
-      { min: 2, max: 20, message: '长度在 2 到 20 个字符', trigger: 'blur' }
+      {
+        required: true,
+        message: t('pages.system.role.dialog.validation.roleNameRequired'),
+        trigger: 'blur'
+      },
+      {
+        min: 2,
+        max: 20,
+        message: t('pages.system.role.dialog.validation.roleNameLength'),
+        trigger: 'blur'
+      }
     ],
     roleCode: [
-      { required: true, message: '请输入角色编码', trigger: 'blur' },
-      { min: 2, max: 50, message: '长度在 2 到 50 个字符', trigger: 'blur' }
+      {
+        required: true,
+        message: t('pages.system.role.dialog.validation.roleCodeRequired'),
+        trigger: 'blur'
+      },
+      {
+        min: 2,
+        max: 50,
+        message: t('pages.system.role.dialog.validation.roleCodeLength'),
+        trigger: 'blur'
+      }
     ],
-    description: [{ required: true, message: '请输入角色描述', trigger: 'blur' }]
+    description: [
+      {
+        required: true,
+        message: t('pages.system.role.dialog.validation.descriptionRequired'),
+        trigger: 'blur'
+      }
+    ]
   })
 
   /**
@@ -168,7 +207,7 @@
         enabled: form.enabled
       })
     } catch (error) {
-      console.log('表单验证失败:', error)
+      console.log('[role-dialog] validation failed:', error)
     }
   }
 </script>

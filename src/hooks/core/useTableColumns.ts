@@ -33,16 +33,26 @@
  */
 
 import { ref, computed, watch } from 'vue'
-import { $t } from '@/locales'
+import i18n, { $t } from '@/locales'
 import type { ColumnOption } from '@/types/component'
 
 /**
  * 特殊列类型
  */
-const SPECIAL_COLUMNS: Record<string, { prop: string; label: string }> = {
-  selection: { prop: '__selection__', label: $t('table.column.selection') },
-  expand: { prop: '__expand__', label: $t('table.column.expand') },
-  index: { prop: '__index__', label: $t('table.column.index') }
+const SPECIAL_COLUMNS: Record<string, { prop: string; labelKey: string }> = {
+  selection: { prop: '__selection__', labelKey: 'table.column.selection' },
+  expand: { prop: '__expand__', labelKey: 'table.column.expand' },
+  index: { prop: '__index__', labelKey: 'table.column.index' }
+}
+
+const getSpecialColumnLabel = (type: string) => {
+  const column = SPECIAL_COLUMNS[type]
+  return column ? $t(column.labelKey) : ''
+}
+
+const getCurrentLocale = () => {
+  const locale = i18n.global.locale
+  return typeof locale === 'string' ? locale : locale.value
 }
 
 /**
@@ -73,7 +83,13 @@ export const getColumnChecks = <T>(columns: ColumnOption<T>[]) =>
     const visibility = getColumnVisibility(col)
 
     if (special) {
-      return { ...col, prop: special.prop, label: special.label, checked: true, visible: true }
+      return {
+        ...col,
+        prop: special.prop,
+        label: getSpecialColumnLabel(col.type as string),
+        checked: true,
+        visible: true
+      }
     }
     return { ...col, checked: visibility, visible: visibility }
   })
@@ -149,8 +165,8 @@ export function useTableColumns<T = any>(
 
   // 当 dynamicColumns 变动时，重新生成 columnChecks 且保留已存在的显示状态
   watch(
-    dynamicColumns,
-    (newCols) => {
+    [dynamicColumns, getCurrentLocale],
+    ([newCols]) => {
       const visibilityMap = new Map(
         columnChecks.value.map((c) => [getColumnKey(c), getColumnVisibility(c)])
       )

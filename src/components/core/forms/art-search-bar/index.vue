@@ -25,7 +25,7 @@
           >
             <template #label v-if="item.label">
               <component v-if="typeof item.label !== 'string'" :is="item.label" />
-              <span v-else>{{ item.label }}</span>
+              <span v-else>{{ resolveItemLabel(item) }}</span>
             </template>
             <slot :name="item.key" :item="item" :modelValue="modelValue">
               <component
@@ -151,7 +151,7 @@
   }
 
   const { width } = useWindowSize()
-  const { t } = useI18n()
+  const { t, te, locale } = useI18n()
   const isMobile = computed(() => width.value < 500)
 
   const formInstance = useTemplateRef<FormInstance>('formRef')
@@ -285,6 +285,49 @@
   const isExpanded = ref(props.defaultExpanded)
 
   const rootProps = ['label', 'labelWidth', 'key', 'type', 'hidden', 'span', 'slots']
+  const INPUT_LIKE_TYPES = ['input', 'inputtag', 'number']
+  const SELECT_LIKE_TYPES = [
+    'select',
+    'cascader',
+    'treeselect',
+    'date',
+    'daterange',
+    'datetime',
+    'datetimerange',
+    'timepicker',
+    'timeselect'
+  ]
+
+  const resolveLocaleText = (text?: string) => {
+    if (!text) return ''
+    void locale.value
+    return te(text) ? t(text) : text
+  }
+
+  const resolveItemLabel = (item: SearchFormItem) =>
+    typeof item.label === 'string' ? resolveLocaleText(item.label) : ''
+
+  const normalizeOptions = (options?: Record<string, any>) => {
+    if (!Array.isArray(options)) return options
+    return options.map((option) => ({
+      ...option,
+      label: typeof option.label === 'string' ? resolveLocaleText(option.label) : option.label
+    }))
+  }
+
+  const buildDefaultPlaceholder = (item: SearchFormItem) => {
+    const label = resolveItemLabel(item)
+    if (!label) return undefined
+
+    const type = String(item.type || 'input').toLowerCase()
+    if (INPUT_LIKE_TYPES.includes(type)) {
+      return `${t('table.searchBar.searchInputPlaceholder')}${label}`
+    }
+    if (SELECT_LIKE_TYPES.includes(type)) {
+      return `${t('table.searchBar.searchSelectPlaceholder')}${label}`
+    }
+    return undefined
+  }
   // 搜索参数默认更激进地去掉空值，减少无效 query 参数。
   const sanitizeOutputOptions = computed<SanitizeOutputOptions>(() => ({
     removeEmptyString: true,
@@ -297,10 +340,30 @@
   }))
 
   const getProps = (item: SearchFormItem) => {
-    if (item.props) return item.props
-    const props = { ...item }
-    rootProps.forEach((key) => delete (props as Record<string, any>)[key])
-    return props
+    const componentProps: Record<string, any> = item.props ? { ...item.props } : { ...item }
+
+    rootProps.forEach((key) => delete (componentProps as Record<string, any>)[key])
+
+    if (item.placeholder !== undefined && componentProps.placeholder === undefined) {
+      componentProps.placeholder = item.placeholder
+    }
+
+    componentProps.placeholder = resolveLocaleText(
+      componentProps.placeholder || buildDefaultPlaceholder(item)
+    )
+    componentProps.startPlaceholder = resolveLocaleText(componentProps.startPlaceholder)
+    componentProps.endPlaceholder = resolveLocaleText(componentProps.endPlaceholder)
+    componentProps.rangeSeparator = resolveLocaleText(componentProps.rangeSeparator)
+    componentProps.options = normalizeOptions(componentProps.options)
+
+    if (Array.isArray(componentProps.shortcuts)) {
+      componentProps.shortcuts = componentProps.shortcuts.map((shortcut: Record<string, any>) => ({
+        ...shortcut,
+        text: typeof shortcut.text === 'string' ? resolveLocaleText(shortcut.text) : shortcut.text
+      }))
+    }
+
+    return componentProps
   }
 
   // 获取插槽
