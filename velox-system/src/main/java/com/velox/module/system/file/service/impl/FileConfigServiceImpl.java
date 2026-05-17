@@ -17,6 +17,7 @@ import com.velox.framework.id.BusinessIdGenerator;
 import com.velox.module.system.file.persistence.FileConfigMapper;
 import com.velox.framework.web.RequestDateTimeFormatter;
 import com.velox.module.system.file.service.FileConfigService;
+import com.velox.module.system.file.support.FileStorageConfigClassResolver;
 import com.velox.module.system.file.vo.FileConfigPageReqVO;
 import com.velox.module.system.file.vo.FileConfigRespVO;
 import com.velox.module.system.file.vo.FileConfigSaveReqVO;
@@ -151,7 +152,7 @@ public class FileConfigServiceImpl implements FileConfigService {
     }
 
     private FileClientConfig parseClientConfig(Integer storage, String config) {
-        Class<? extends FileClientConfig> configClass = fileClientManager.getConfigClass(storage);
+        Class<? extends FileClientConfig> configClass = FileStorageConfigClassResolver.resolve(storage);
         if (configClass == null) {
             throw new ApiException(BusinessErrorCode.FILE_STORAGE_TYPE_UNSUPPORTED, storage);
         }

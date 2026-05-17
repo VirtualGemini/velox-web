@@ -19,6 +19,7 @@
         <aws.sdk.version>2.25.0</aws.sdk.version>
         <tika.version>2.9.2</tika.version>
         <jsch.version>0.2.19</jsch.version>
+        <commons-net.version>3.12.0</commons-net.version>
         <mysql.version>8.4.0</mysql.version>
         <postgresql.version>42.7.7</postgresql.version>
         <sa-token.version>1.40.0</sa-token.version>
@@ -99,6 +100,11 @@
                 <groupId>com.github.mwiede</groupId>
                 <artifactId>jsch</artifactId>
                 <version>${jsch.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-net</groupId>
+                <artifactId>commons-net</artifactId>
+                <version>${commons-net.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
