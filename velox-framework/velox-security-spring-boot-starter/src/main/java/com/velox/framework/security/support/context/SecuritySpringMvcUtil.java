@@ -1,6 +1,7 @@
 package com.velox.framework.security.support.context;
 
 import cn.dev33.satoken.exception.NotWebContextException;
+import com.velox.framework.security.common.message.SecurityCommonMessages;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.web.context.request.RequestContextHolder;
@@ -14,7 +15,7 @@ public final class SecuritySpringMvcUtil {
     public static HttpServletRequest getRequest() {
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         if (attributes == null) {
-            throw (NotWebContextException) new NotWebContextException("Current context is not a web request").setCode(20101);
+            throw (NotWebContextException) new NotWebContextException(SecurityCommonMessages.SECURITY_NOT_WEB_CONTEXT).setCode(20101);
         }
         return attributes.getRequest();
     }
@@ -22,7 +23,7 @@ public final class SecuritySpringMvcUtil {
     public static HttpServletResponse getResponse() {
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         if (attributes == null) {
-            throw (NotWebContextException) new NotWebContextException("Current context is not a web request").setCode(20101);
+            throw (NotWebContextException) new NotWebContextException(SecurityCommonMessages.SECURITY_NOT_WEB_CONTEXT).setCode(20101);
         }
         return attributes.getResponse();
     }

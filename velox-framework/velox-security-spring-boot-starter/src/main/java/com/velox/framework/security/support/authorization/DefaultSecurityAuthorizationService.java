@@ -3,6 +3,7 @@ package com.velox.framework.security.support.authorization;
 import com.velox.framework.security.api.authorization.SecurityAuthorizationService;
 import com.velox.framework.security.api.authorization.SecurityPermissionProvider;
 import com.velox.framework.security.api.session.SecuritySessionService;
+import com.velox.framework.security.common.message.SecurityCommonMessages;
 import com.velox.framework.security.exception.SecurityAuthenticationException;
 import com.velox.framework.security.exception.SecurityAuthorizationException;
 
@@ -20,7 +21,7 @@ public class DefaultSecurityAuthorizationService implements SecurityAuthorizatio
     @Override
     public void checkAuthenticated() {
         if (!securitySessionService.isAuthenticated()) {
-            throw new SecurityAuthenticationException("Login required");
+            throw new SecurityAuthenticationException(SecurityCommonMessages.SECURITY_AUTHENTICATION_REQUIRED);
         }
     }
 
@@ -29,12 +30,12 @@ public class DefaultSecurityAuthorizationService implements SecurityAuthorizatio
         checkAuthenticated();
         String loginId = securitySessionService.requireCurrentLoginId();
         if (permission == null || permission.isBlank()) {
-            throw new SecurityAuthorizationException("Permission is required");
+            throw new SecurityAuthorizationException(SecurityCommonMessages.SECURITY_PERMISSION_REQUIRED);
         }
         boolean allowed = securityPermissionProvider.getPermissions(loginId).stream()
                 .anyMatch(mark -> permission.trim().equals(mark));
         if (!allowed) {
-            throw new SecurityAuthorizationException("Permission denied");
+            throw new SecurityAuthorizationException(SecurityCommonMessages.SECURITY_PERMISSION_DENIED);
         }
     }
 }

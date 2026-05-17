@@ -14,6 +14,7 @@ import com.velox.framework.security.api.session.SecuritySessionService;
 import com.velox.framework.security.api.token.SecurityTokenEngine;
 import com.velox.framework.security.api.token.SecurityTokenProvider;
 import com.velox.framework.security.api.token.SecurityTokenRuntime;
+import com.velox.framework.security.common.constant.SecurityConstants;
 import com.velox.framework.security.common.message.SecurityCommonMessages;
 import com.velox.framework.security.exception.SecurityConfigException;
 import com.velox.framework.security.support.authorization.SaTokenPermissionProviderAdapter;
@@ -31,13 +32,13 @@ import org.springframework.context.annotation.Primary;
 public class VeloxSecuritySaTokenAutoConfiguration {
 
     @Bean
-    @ConditionalOnMissingBean(name = "veloxSaTokenStatefulTokenProvider")
+    @ConditionalOnMissingBean(name = SecurityConstants.SA_TOKEN_STATEFUL_PROVIDER_BEAN_NAME)
     public SecurityTokenProvider veloxSaTokenStatefulTokenProvider(SecurityProperties securityProperties) {
         return new SaTokenStatefulTokenProvider(securityProperties);
     }
 
     @Bean
-    @ConditionalOnMissingBean(name = "veloxSaTokenJwtTokenProvider")
+    @ConditionalOnMissingBean(name = SecurityConstants.SA_TOKEN_JWT_PROVIDER_BEAN_NAME)
     public SecurityTokenProvider veloxSaTokenJwtTokenProvider(SecurityProperties securityProperties) {
         return new SaTokenJwtTokenProvider(securityProperties);
     }
@@ -67,7 +68,9 @@ public class VeloxSecuritySaTokenAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean
     public StpLogic stpLogic(SecurityTokenRuntime runtime) {
-        String loginType = runtime.getLoginType() == null || runtime.getLoginType().isBlank() ? "login" : runtime.getLoginType();
+        String loginType = runtime.getLoginType() == null || runtime.getLoginType().isBlank()
+                ? SecurityConstants.DEFAULT_LOGIN_TYPE
+                : runtime.getLoginType();
         return switch (runtime.getEngine()) {
             case STATEFUL -> new StpLogic(loginType);
             case JWT_MIXIN -> new StpLogicJwtForMixin(loginType);

@@ -1,11 +1,12 @@
 package com.velox.framework.security.properties;
 
+import com.velox.framework.security.common.constant.SecurityConstants;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * 安全相关配置
  */
-@ConfigurationProperties(prefix = "velox.security")
+@ConfigurationProperties(prefix = SecurityConstants.CONFIG_PREFIX)
 public class SecurityProperties {
 
     private boolean swaggerPublicEnabled = false;
@@ -51,7 +52,7 @@ public class SecurityProperties {
         /**
          * 可选：pbkdf2_sha512 / bcrypt / md5
          */
-        private String algorithm = "bcrypt";
+        private String algorithm = SecurityConstants.DEFAULT_PASSWORD_ALGORITHM;
 
         /**
          * 登录成功后是否将旧加密算法升级为当前算法
@@ -226,7 +227,7 @@ public class SecurityProperties {
         /**
          * 验证码摘要加密密钥，建议通过环境变量注入
          */
-        private String secret = "change-this-verification-secret";
+        private String secret = SecurityConstants.DEFAULT_VERIFICATION_SECRET;
 
         /**
          * 忘记密码验证码有效期（秒）
@@ -267,17 +268,17 @@ public class SecurityProperties {
         /**
          * token provider 模式：stateful / jwt / custom
          */
-        private String mode = "stateful";
+        private String mode = SecurityConstants.DEFAULT_TOKEN_MODE;
 
         /**
          * provider 标识；供第三方扩展区分多实现
          */
-        private String provider = "";
+        private String provider = SecurityConstants.DEFAULT_TOKEN_PROVIDER;
 
         /**
          * token 写入的请求头名
          */
-        private String tokenName = "Authorization";
+        private String tokenName = SecurityConstants.DEFAULT_TOKEN_NAME;
 
         /**
          * token 有效期（秒）
@@ -297,7 +298,7 @@ public class SecurityProperties {
         /**
          * Sa-Token 原生 token-style，仅在 stateful provider 下生效
          */
-        private String style = "uuid";
+        private String style = SecurityConstants.DEFAULT_TOKEN_STYLE;
 
         /**
          * 是否输出底层认证组件日志
@@ -417,12 +418,12 @@ public class SecurityProperties {
             /**
              * jwt 运行形态：simple / mixin / stateless
              */
-            private String strategy = "mixin";
+            private String strategy = SecurityConstants.DEFAULT_JWT_STRATEGY;
 
             /**
              * 签名密钥，建议通过环境变量注入
              */
-            private String secret = "change-this-jwt-secret";
+            private String secret = SecurityConstants.DEFAULT_JWT_SECRET;
 
             /**
              * 是否在 jwt 模式下继续将 token 写入 header

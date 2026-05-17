@@ -1,5 +1,7 @@
 package com.velox.framework.security.api.token;
 
+import com.velox.framework.security.common.constant.SecurityConstants;
+
 public class SecurityTokenRuntime {
 
     private SecurityTokenEngine engine;
@@ -12,7 +14,7 @@ public class SecurityTokenRuntime {
     private boolean readHeader;
     private boolean readCookie;
     private boolean writeHeader;
-    private String loginType = "login";
+    private String loginType = SecurityConstants.DEFAULT_LOGIN_TYPE;
     private String jwtSecret;
 
     public SecurityTokenEngine getEngine() {

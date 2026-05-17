@@ -3,6 +3,7 @@ package com.velox.framework.security.support.session;
 import cn.dev33.satoken.exception.SaTokenException;
 import cn.dev33.satoken.stp.StpUtil;
 import com.velox.framework.security.api.session.SecuritySessionService;
+import com.velox.framework.security.common.message.SecurityCommonMessages;
 import com.velox.framework.security.exception.SecurityAuthenticationException;
 
 public class SaTokenSecuritySessionService implements SecuritySessionService {
@@ -13,7 +14,7 @@ public class SaTokenSecuritySessionService implements SecuritySessionService {
             StpUtil.login(loginId);
             return StpUtil.getTokenValue();
         } catch (SaTokenException exception) {
-            throw new SecurityAuthenticationException("Login failed", exception);
+            throw new SecurityAuthenticationException(SecurityCommonMessages.SECURITY_LOGIN_FAILED, exception);
         }
     }
 
@@ -22,7 +23,7 @@ public class SaTokenSecuritySessionService implements SecuritySessionService {
         try {
             StpUtil.logout();
         } catch (SaTokenException exception) {
-            throw new SecurityAuthenticationException("Logout failed", exception);
+            throw new SecurityAuthenticationException(SecurityCommonMessages.SECURITY_LOGOUT_FAILED, exception);
         }
     }
 

@@ -54,8 +54,9 @@ public class VeloxSecurityAutoConfiguration {
                 .toList();
 
         if (matches.isEmpty()) {
-            throw new SecurityConfigException(SecurityCommonMessages.SECURITY_TOKEN_PROVIDER_NOT_FOUND
-                    + ": mode=" + tokenProperties.getMode() + ", provider=" + tokenProperties.getProvider());
+            throw new SecurityConfigException(
+                    SecurityCommonMessages.tokenProviderNotFound(tokenProperties.getMode(), tokenProperties.getProvider())
+            );
         }
 
         List<SecurityTokenProvider> customMatches = matches.stream()
@@ -65,13 +66,15 @@ public class VeloxSecurityAutoConfiguration {
             return customMatches.get(0);
         }
         if (customMatches.size() > 1) {
-            throw new SecurityConfigException(SecurityCommonMessages.SECURITY_TOKEN_PROVIDER_DUPLICATED
-                    + ": mode=" + tokenProperties.getMode() + ", provider=" + tokenProperties.getProvider());
+            throw new SecurityConfigException(
+                    SecurityCommonMessages.tokenProviderDuplicated(tokenProperties.getMode(), tokenProperties.getProvider())
+            );
         }
 
         if (matches.size() > 1) {
-            throw new SecurityConfigException(SecurityCommonMessages.SECURITY_TOKEN_PROVIDER_DUPLICATED
-                    + ": mode=" + tokenProperties.getMode() + ", provider=" + tokenProperties.getProvider());
+            throw new SecurityConfigException(
+                    SecurityCommonMessages.tokenProviderDuplicated(tokenProperties.getMode(), tokenProperties.getProvider())
+            );
         }
         return matches.get(0);
     }
@@ -80,7 +83,7 @@ public class VeloxSecurityAutoConfiguration {
         SecurityTokenRuntime runtime = new SecurityTokenRuntime();
         securityTokenProvider.customize(runtime);
         if (runtime.getEngine() == null) {
-            throw new SecurityConfigException("Security token provider must supply engine");
+            throw new SecurityConfigException(SecurityCommonMessages.SECURITY_TOKEN_PROVIDER_ENGINE_REQUIRED);
         }
         return runtime;
     }
