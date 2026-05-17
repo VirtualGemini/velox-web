@@ -9,7 +9,7 @@ import com.velox.common.exception.BusinessErrorCode;
 import com.velox.common.result.PageResult;
 import com.velox.module.system.file.domain.model.File;
 import com.velox.framework.file.api.client.FileClient;
-import com.velox.framework.file.support.util.FileTypeUtils;
+import com.velox.framework.file.api.util.FileTypeUtils;
 import com.velox.framework.id.BusinessIdGenerator;
 import com.velox.module.system.file.persistence.FileMapper;
 import com.velox.framework.web.RequestDateTimeFormatter;
@@ -69,7 +69,7 @@ public class FileServiceImpl implements FileService {
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public String createFile(byte[] content, String name, String directory, String type) throws Exception {
+    public String createFile(byte[] content, String name, String directory, String type) {
         if (StrUtil.isEmpty(type)) {
             type = FileTypeUtils.getMineType(content, name);
         }
@@ -134,7 +134,7 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public FilePresignedUrlRespVO presignPutUrl(String name, String directory) throws Exception {
+    public FilePresignedUrlRespVO presignPutUrl(String name, String directory) {
         String path = generateUploadPath(name, directory);
         FileClient fileClient = fileConfigService.getMasterFileClient();
         String uploadUrl = fileClient.presignPutUrl(path);
@@ -169,7 +169,7 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public void deleteFile(String id) throws Exception {
+    public void deleteFile(String id) {
         File fileDO = validateFileExists(id);
         FileClient client = fileConfigService.getFileClient(fileDO.getConfigId());
         client.delete(fileDO.getPath());
@@ -177,7 +177,7 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public void deleteFileList(List<String> ids) throws Exception {
+    public void deleteFileList(List<String> ids) {
         List<File> files = fileMapper.selectByIds(ids);
         for (File fileDO : files) {
             FileClient client = fileConfigService.getFileClient(fileDO.getConfigId());
@@ -195,7 +195,7 @@ public class FileServiceImpl implements FileService {
     }
 
     @Override
-    public byte[] getFileContent(String configId, String path) throws Exception {
+    public byte[] getFileContent(String configId, String path) {
         FileClient client = fileConfigService.getFileClient(configId);
         return client.getContent(path);
     }

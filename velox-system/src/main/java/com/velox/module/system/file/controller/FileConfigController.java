@@ -95,11 +95,18 @@ public class FileConfigController {
         return Result.ok(fileConfigService.getFileConfigPage(pageReqVO));
     }
 
+    @GetMapping("/supported-storages")
+    @Operation(summary = "获得当前环境支持的文件存储类型")
+    @SaCheckPermission("system:file-config:query")
+    public Result<List<Integer>> getSupportedStorageTypes() {
+        return Result.ok(fileConfigService.getSupportedStorageTypes());
+    }
+
     @GetMapping("/test")
     @Operation(summary = "测试文件配置是否正确")
     @Parameter(name = "id", description = "编号", required = true)
     @SaCheckPermission("system:file-config:query")
-    public Result<String> testFileConfig(@RequestParam("id") String id) throws Exception {
+    public Result<String> testFileConfig(@RequestParam("id") String id) {
         return Result.ok(fileConfigService.testFileConfig(id));
     }
 }

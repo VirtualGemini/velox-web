@@ -7,7 +7,7 @@ import com.velox.common.exception.ApiException;
 import com.velox.common.exception.BusinessErrorCode;
 import com.velox.common.result.PageResult;
 import com.velox.common.result.Result;
-import com.velox.framework.file.support.util.FileTypeUtils;
+import com.velox.framework.file.api.util.FileTypeUtils;
 import com.velox.module.system.file.service.FileService;
 import com.velox.module.system.file.vo.FileCreateReqVO;
 import com.velox.module.system.file.vo.FilePageReqVO;
@@ -44,7 +44,7 @@ public class FileController {
     @PostMapping("/upload")
     @Operation(summary = "上传文件", description = "模式一：后端上传文件")
     @SaCheckPermission("system:file:upload")
-    public Result<String> uploadFile(@Valid FileUploadReqVO uploadReqVO) throws Exception {
+    public Result<String> uploadFile(@Valid FileUploadReqVO uploadReqVO) throws java.io.IOException {
         MultipartFile file = uploadReqVO.getFile();
         byte[] content = IoUtil.readBytes(file.getInputStream());
         return Result.ok(fileService.createFile(content, file.getOriginalFilename(),
@@ -55,7 +55,7 @@ public class FileController {
     @Operation(summary = "获取文件预签名地址", description = "模式二：前端上传文件")
     public Result<FilePresignedUrlRespVO> presignPutUrl(
             @RequestParam("name") String name,
-            @RequestParam(value = "directory", required = false) String directory) throws Exception {
+            @RequestParam(value = "directory", required = false) String directory) {
         return Result.ok(fileService.presignPutUrl(name, directory));
     }
 
@@ -70,7 +70,7 @@ public class FileController {
     @Operation(summary = "删除文件")
     @Parameter(name = "id", description = "编号", required = true)
     @SaCheckPermission("system:file:delete")
-    public Result<Boolean> deleteFile(@RequestParam("id") String id) throws Exception {
+    public Result<Boolean> deleteFile(@RequestParam("id") String id) {
         fileService.deleteFile(id);
         return Result.ok(true);
     }
@@ -78,7 +78,7 @@ public class FileController {
     @DeleteMapping("/delete-batch")
     @Operation(summary = "批量删除文件")
     @SaCheckPermission("system:file:delete")
-    public Result<Boolean> deleteFileList(@RequestParam("ids") List<String> ids) throws Exception {
+    public Result<Boolean> deleteFileList(@RequestParam("ids") List<String> ids) {
         fileService.deleteFileList(ids);
         return Result.ok(true);
     }
@@ -103,7 +103,7 @@ public class FileController {
     @Parameter(name = "configId", description = "配置编号", required = true)
     public void getFileContent(HttpServletRequest request,
                                HttpServletResponse response,
-                               @PathVariable("configId") String configId) throws Exception {
+                               @PathVariable("configId") String configId) throws java.io.IOException {
         String path = StrUtil.subAfter(request.getRequestURI(), "/get/", false);
         if (StrUtil.isEmpty(path)) {
             throw new ApiException(BusinessErrorCode.FILE_PATH_REQUIRED);

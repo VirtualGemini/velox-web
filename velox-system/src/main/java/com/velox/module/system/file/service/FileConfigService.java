@@ -27,7 +27,9 @@ public interface FileConfigService {
 
     PageResult<FileConfigRespVO> getFileConfigPage(FileConfigPageReqVO pageReqVO);
 
-    String testFileConfig(String id) throws Exception;
+    List<Integer> getSupportedStorageTypes();
+
+    String testFileConfig(String id);
 
     FileClient getFileClient(String id);
 

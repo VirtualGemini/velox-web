@@ -5,9 +5,12 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.velox.common.exception.ApiException;
 import com.velox.common.exception.BusinessErrorCode;
+import com.velox.common.exception.MessageUtils;
 import com.velox.common.result.PageResult;
 import com.velox.module.system.file.domain.model.FileConfig;
 import com.velox.framework.file.api.client.FileClient;
+import com.velox.framework.file.api.diagnostics.FileFailureReason;
+import com.velox.framework.file.api.diagnostics.FileFailureReasonResolver;
 import com.velox.framework.file.spi.client.FileClientConfig;
 import com.velox.framework.file.spi.client.FileClientManager;
 import com.velox.framework.id.BusinessIdGenerator;
@@ -23,7 +26,6 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.ExecutionError;
-import com.google.common.util.concurrent.UncheckedExecutionException;
 import jakarta.validation.Validator;
 import jakarta.validation.ConstraintViolation;
 import org.springframework.stereotype.Service;
@@ -64,14 +66,18 @@ public class FileConfigServiceImpl implements FileConfigService {
 
     private final BusinessIdGenerator idGenerator;
 
+    private final FileFailureReasonResolver fileFailureReasonResolver;
+
     public FileConfigServiceImpl(FileClientManager fileClientManager,
                                  FileConfigMapper fileConfigMapper,
                                  Validator validator,
-                                 BusinessIdGenerator idGenerator) {
+                                 BusinessIdGenerator idGenerator,
+                                 FileFailureReasonResolver fileFailureReasonResolver) {
         this.fileClientManager = fileClientManager;
         this.fileConfigMapper = fileConfigMapper;
         this.validator = validator;
         this.idGenerator = idGenerator;
+        this.fileFailureReasonResolver = fileFailureReasonResolver;
     }
 
     public LoadingCache<String, FileClient> getClientCache() {
@@ -210,7 +216,12 @@ public class FileConfigServiceImpl implements FileConfigService {
     }
 
     @Override
-    public String testFileConfig(String id) throws Exception {
+    public List<Integer> getSupportedStorageTypes() {
+        return fileClientManager.getSupportedStorageTypes().stream().sorted().toList();
+    }
+
+    @Override
+    public String testFileConfig(String id) {
         validateFileConfigExists(id);
         byte[] content = "test".getBytes();
         try {
@@ -218,9 +229,9 @@ public class FileConfigServiceImpl implements FileConfigService {
         } catch (ApiException exception) {
             throw exception;
         } catch (ExecutionError exception) {
-            throw new ApiException(exception, BusinessErrorCode.FILE_CONFIG_TEST_FAILED);
+            throw buildFileConfigTestFailed(exception);
         } catch (Exception exception) {
-            throw new ApiException(exception, BusinessErrorCode.FILE_CONFIG_TEST_FAILED);
+            throw buildFileConfigTestFailed(exception);
         }
     }
 
@@ -232,6 +243,26 @@ public class FileConfigServiceImpl implements FileConfigService {
     @Override
     public FileClient getMasterFileClient() {
         return clientCache.getUnchecked(CACHE_MASTER_ID);
+    }
+
+    private ApiException buildFileConfigTestFailed(Throwable cause) {
+        FileFailureReason reason = fileFailureReasonResolver.resolve(cause);
+        return new ApiException(cause, BusinessErrorCode.FILE_CONFIG_TEST_FAILED, localizeTestFailureReason(reason));
+    }
+
+    private String localizeTestFailureReason(FileFailureReason reason) {
+        String key = "file.config.test.reason." + reason.code();
+        String localized = MessageUtils.message(key);
+        if (localized != null) {
+            return localized;
+        }
+        return switch (reason.code()) {
+            case "capability_unavailable" -> "当前环境未启用该存储能力";
+            case "connect_failed" -> "无法连接到目标存储服务";
+            case "connect_timeout" -> "连接目标存储服务超时";
+            case "access_denied" -> "访问凭证或权限校验失败";
+            default -> "连接或初始化失败";
+        };
     }
 
     private FileConfigRespVO toFileConfigRespVO(FileConfig fileConfig) {

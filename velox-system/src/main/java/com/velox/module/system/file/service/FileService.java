@@ -12,9 +12,9 @@ public interface FileService {
 
     PageResult<FileRespVO> getFilePage(FilePageReqVO pageReqVO);
 
-    String createFile(byte[] content, String name, String directory, String type) throws Exception;
+    String createFile(byte[] content, String name, String directory, String type);
 
-    FilePresignedUrlRespVO presignPutUrl(String name, String directory) throws Exception;
+    FilePresignedUrlRespVO presignPutUrl(String name, String directory);
 
     String presignGetUrl(String url, Integer expirationSeconds);
 
@@ -22,9 +22,9 @@ public interface FileService {
 
     FileRespVO getFile(String id);
 
-    void deleteFile(String id) throws Exception;
+    void deleteFile(String id);
 
-    void deleteFileList(List<String> ids) throws Exception;
+    void deleteFileList(List<String> ids);
 
-    byte[] getFileContent(String configId, String path) throws Exception;
+    byte[] getFileContent(String configId, String path);
 }
