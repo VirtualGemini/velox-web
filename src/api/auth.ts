@@ -15,6 +15,26 @@ export function fetchLogin(params: Api.Auth.LoginParams) {
 }
 
 /**
+ * 发送登录验证码（邮箱/手机号）
+ */
+export function fetchSendLoginCode(data: Api.Auth.LoginCodeSendParams) {
+  return request.post<void>({
+    url: '/api/auth/login-code/send',
+    data
+  })
+}
+
+/**
+ * 验证码登录（邮箱/手机号）
+ */
+export function fetchLoginByCode(data: Api.Auth.CodeLoginParams) {
+  return request.post<Api.Auth.LoginResponse>({
+    url: '/api/auth/login-code/login',
+    data
+  })
+}
+
+/**
  * 获取用户基础信息（仅含支撑系统运行的最少字段）
  */
 export function fetchGetUserInfo() {

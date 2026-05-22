@@ -68,6 +68,22 @@ declare namespace Api {
       password: string
     }
 
+    /** 验证码登录的渠道类型 */
+    type LoginCodeChannel = 'email' | 'phone'
+
+    /** 发送登录验证码参数 */
+    interface LoginCodeSendParams {
+      type: LoginCodeChannel
+      target: string
+    }
+
+    /** 验证码登录参数 */
+    interface CodeLoginParams {
+      type: LoginCodeChannel
+      target: string
+      code: string
+    }
+
     /** 登录响应 */
     interface LoginResponse {
       token: string
@@ -179,7 +195,12 @@ declare namespace Api {
     /** 用户搜索参数 */
     type UserSearchParams = Partial<
       Pick<UserListItem, 'id' | 'userName' | 'userGender' | 'userPhone' | 'userEmail' | 'status'> &
-        Api.Common.CommonSearchParams
+        Api.Common.CommonSearchParams & {
+          createTimeStart: string | null
+          createTimeEnd: string | null
+          updateTimeStart: string | null
+          updateTimeEnd: string | null
+        }
     >
 
     interface UserSaveCommand {
@@ -213,6 +234,10 @@ declare namespace Api {
       Pick<RoleListItem, 'roleId' | 'roleName' | 'roleCode' | 'description' | 'enabled'> &
         Api.Common.CommonSearchParams & {
           type: number
+          createTimeStart: string | null
+          createTimeEnd: string | null
+          updateTimeStart: string | null
+          updateTimeEnd: string | null
           startTime: string | null
           endTime: string | null
         }

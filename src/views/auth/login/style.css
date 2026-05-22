@@ -11,6 +11,10 @@
     @apply h-full py-[40px] flex flex-col justify-center;
   }
 
+  .form-panel {
+    @apply w-full;
+  }
+
   .title {
     @apply text-g-900 text-4xl font-semibold max-md:text-3xl max-sm:pt-10;
   }
@@ -21,6 +25,40 @@
 
   .custom-height {
     @apply !h-[40px];
+  }
+
+  /* 登录方式选择卡片 */
+  .channel-card {
+    @apply relative flex items-center gap-4 px-4 py-4 cursor-pointer overflow-hidden
+      rounded-xl border border-g-200 bg-box text-g-900
+      transition-all duration-200 select-none
+      hover:border-[var(--main-color)] hover:shadow-[0_4px_18px_-8px_var(--main-color)];
+  }
+
+  .channel-icon {
+    @apply flex shrink-0 items-center justify-center size-10 rounded-lg
+      bg-[color-mix(in_oklab,var(--main-color)_12%,transparent)]
+      text-[var(--main-color)] text-xl;
+  }
+
+  .channel-text {
+    @apply flex-1 min-w-0;
+  }
+
+  .channel-title {
+    @apply text-sm font-medium text-g-900;
+  }
+
+  .channel-desc {
+    @apply mt-1 text-xs text-g-600;
+  }
+
+  .channel-arrow {
+    @apply shrink-0 text-g-500 text-lg transition-transform duration-200;
+  }
+
+  .channel-card:hover .channel-arrow {
+    @apply translate-x-1 text-[var(--main-color)];
   }
 }
 
@@ -35,4 +73,13 @@
     opacity: 1;
     transform: translateX(0);
   }
+}
+
+/* 登录模式切换过渡：与页面打开时的 slideInRight 一致 */
+.login-slide-enter-active {
+  animation: slideInRight 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.login-slide-leave-active {
+  animation: slideInRight 0.25s cubic-bezier(0.55, 0.06, 0.68, 0.19) reverse;
 }

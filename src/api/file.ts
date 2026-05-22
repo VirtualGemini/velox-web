@@ -1,4 +1,5 @@
 import request from '@/utils/http'
+import { useUserStore } from '@/store/modules/user'
 
 export interface FileUploadResult {
   path: string
@@ -16,15 +17,19 @@ export interface FileRecord {
   type: string
   size: number
   createBy: string
-  createTime: string
-  updateTime: string
+  uploadTime: string
 }
 
 export interface FileQuery {
   page: number
   size: number
+  name?: string
   path?: string
   type?: string
+  sizeMinBytes?: number
+  sizeMaxBytes?: number
+  uploadTimeStart?: string
+  uploadTimeEnd?: string
 }
 
 export interface FilePageResult {
@@ -52,6 +57,11 @@ export interface FileConfigQuery {
   size?: number
   name?: string
   storage?: number
+  enabled?: number
+  createTimeStart?: string
+  createTimeEnd?: string
+  updateTimeStart?: string
+  updateTimeEnd?: string
 }
 
 export interface FileConfigPageResult {
@@ -127,10 +137,10 @@ export function fetchFilePresignPutUrl(name: string, directory?: string) {
   })
 }
 
-export function fetchFilePresignGetUrl(url: string, expirationSeconds?: number) {
+export function fetchFilePresignGetUrl(configId: string, url: string, expirationSeconds?: number) {
   return request.get<string>({
     url: '/api/file/presigned-get-url',
-    params: { url, expirationSeconds }
+    params: { configId, url, expirationSeconds }
   })
 }
 
@@ -139,6 +149,32 @@ export function fetchFileCreate(data: { configId: string; path: string; url?: st
     url: '/api/file/create',
     data
   })
+}
+
+export function fetchFileTypes() {
+  return request.get<string[]>({
+    url: '/api/file/types'
+  })
+}
+
+export async function fetchFileDownloadBlob(id: string) {
+  const userStore = useUserStore()
+  const { VITE_API_URL, VITE_WITH_CREDENTIALS } = import.meta.env
+  const response = await fetch(`${VITE_API_URL}/api/file/download?id=${encodeURIComponent(id)}`, {
+    method: 'GET',
+    headers: {
+      Authorization: userStore.accessToken || '',
+      'X-Time-Zone': Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
+      'Accept-Language': userStore.language || 'zh'
+    },
+    credentials: VITE_WITH_CREDENTIALS === 'true' ? 'include' : 'same-origin'
+  })
+
+  if (!response.ok) {
+    throw new Error(`download failed: ${response.status}`)
+  }
+
+  return response.blob()
 }
 
 export function fetchFileConfigList(params: FileConfigQuery) {

@@ -297,6 +297,7 @@
     'timepicker',
     'timeselect'
   ]
+  const DATE_PICKER_TYPES = ['date', 'daterange', 'datetime', 'datetimerange']
 
   const resolveLocaleText = (text?: string) => {
     if (!text) return ''
@@ -343,6 +344,14 @@
     const componentProps: Record<string, any> = item.props ? { ...item.props } : { ...item }
 
     rootProps.forEach((key) => delete (componentProps as Record<string, any>)[key])
+
+    if (
+      typeof item.type === 'string' &&
+      DATE_PICKER_TYPES.includes(item.type) &&
+      componentProps.type === undefined
+    ) {
+      componentProps.type = item.type
+    }
 
     if (item.placeholder !== undefined && componentProps.placeholder === undefined) {
       componentProps.placeholder = item.placeholder

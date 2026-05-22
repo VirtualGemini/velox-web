@@ -159,9 +159,12 @@
       "logoutTooltip": "退出登录"
     },
     "placeholder": {
-      "username": "请输入账号",
+      "username": "请输入账号/手机号/邮箱",
       "password": "请输入密码",
-      "slider": "请拖动滑块完成验证"
+      "slider": "请拖动滑块完成验证",
+      "email": "请输入邮箱",
+      "phone": "请输入手机号",
+      "code": "请输入验证码"
     },
     "sliderText": "按住滑块拖动",
     "sliderSuccessText": "验证成功",
@@ -170,6 +173,24 @@
     "btnText": "登录",
     "noAccount": "还没有账号？",
     "register": "注册",
+    "otherLogin": "使用其它方式登录",
+    "passwordLogin": "使用密码登录",
+    "channel": {
+      "title": "选择登录方式",
+      "subTitle": "选择手机号或邮箱接收验证码",
+      "email": "邮箱",
+      "phone": "手机号"
+    },
+    "code": {
+      "emailTitle": "邮箱验证码登录",
+      "phoneTitle": "手机号验证码登录",
+      "subTitle": "输入接收到的验证码完成登录",
+      "sendBtn": "发送验证码",
+      "sent": "验证码已发送，请查收",
+      "emailInvalid": "邮箱格式不正确",
+      "phoneInvalid": "手机号格式不正确",
+      "phoneTodo": "手机号登录暂未开通"
+    },
     "success": {
       "title": "登录成功",
       "message": "欢迎回来"
@@ -288,7 +309,18 @@
           "userPhone": "手机号",
           "userEmail": "邮箱",
           "status": "状态",
-          "userGender": "性别"
+          "userGender": "性别",
+          "createTimeRange": "创建时间",
+          "updateTimeRange": "编辑时间",
+          "rangeSeparator": "至",
+          "placeholders": {
+            "startTime": "开始时间",
+            "endTime": "结束时间"
+          },
+          "createTimeStart": "创建开始时间",
+          "createTimeEnd": "创建结束时间",
+          "updateTimeStart": "编辑开始时间",
+          "updateTimeEnd": "编辑结束时间"
         },
         "columns": {
           "userInfo": "用户信息",
@@ -367,13 +399,18 @@
           "roleName": "角色名称",
           "roleCode": "角色编码",
           "description": "角色描述",
+          "type": "角色类型",
           "enabled": "角色状态",
-          "daterange": "创建日期",
+          "createTimeRange": "创建时间",
+          "updateTimeRange": "编辑时间",
+          "createTimeStart": "创建开始时间",
+          "createTimeEnd": "创建结束时间",
+          "updateTimeStart": "编辑开始时间",
+          "updateTimeEnd": "编辑结束时间",
           "rangeSeparator": "至",
           "placeholders": {
-            "daterange": "请选择日期范围",
-            "startDate": "开始日期",
-            "endDate": "结束日期"
+            "startTime": "开始时间",
+            "endTime": "结束时间"
           },
           "shortcuts": {
             "today": "今日",
@@ -500,7 +537,19 @@
         },
         "search": {
           "name": "菜单名称",
-          "route": "路由地址"
+          "route": "路由地址",
+          "status": "菜单状态",
+          "createTimeRange": "创建时间",
+          "updateTimeRange": "编辑时间",
+          "rangeSeparator": "至",
+          "placeholders": {
+            "startTime": "开始时间",
+            "endTime": "结束时间"
+          },
+          "createTimeStart": "创建开始时间",
+          "createTimeEnd": "创建结束时间",
+          "updateTimeStart": "编辑开始时间",
+          "updateTimeEnd": "编辑结束时间"
         },
         "columns": {
           "title": "菜单名称",
@@ -613,10 +662,23 @@
           "clickUpload": "点击上传"
         },
         "search": {
-          "path": "文件路径",
+          "name": "文件名",
           "type": "文件类型",
+          "sizeRange": "文件大小区间",
+          "uploadTimeRange": "上传时间",
+          "rangeSeparator": "至",
+          "createTimeStart": "上传开始时间",
+          "createTimeEnd": "上传结束时间",
+          "units": {
+            "KB": "KB",
+            "MB": "MB"
+          },
           "placeholders": {
-            "type": "例如 image/jpeg"
+            "type": "请选择文件类型",
+            "startSize": "最小值",
+            "endSize": "最大值",
+            "startTime": "开始时间",
+            "endTime": "结束时间"
           }
         },
         "columns": {
@@ -630,6 +692,8 @@
         },
         "messages": {
           "downloadUrlFailed": "获取下载地址失败",
+          "invalidSizeValue": "文件大小请输入有效数字",
+          "invalidSizeRange": "文件大小区间不合法，最小值不能大于最大值",
           "confirmDelete": "确定删除文件“{name}”吗？删除后无法恢复。",
           "deleteTitle": "删除确认",
           "deleteSuccess": "删除成功",
@@ -734,7 +798,19 @@
         },
         "search": {
           "name": "配置名称",
-          "storage": "存储类型"
+          "storage": "存储类型",
+          "enabled": "配置状态",
+          "createTimeRange": "创建时间",
+          "updateTimeRange": "编辑时间",
+          "rangeSeparator": "至",
+          "placeholders": {
+            "startTime": "开始时间",
+            "endTime": "结束时间"
+          },
+          "createTimeStart": "创建开始时间",
+          "createTimeEnd": "创建结束时间",
+          "updateTimeStart": "编辑开始时间",
+          "updateTimeEnd": "编辑结束时间"
         },
         "columns": {
           "name": "配置名称",

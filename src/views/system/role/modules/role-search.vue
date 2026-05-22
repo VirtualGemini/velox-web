@@ -11,16 +11,23 @@
 </template>
 
 <script setup lang="ts">
-  type RoleSearchFormParams = Api.SystemManage.RoleSearchParams & {
-    daterange?: string[]
+  type RoleSearchFormParams = Api.SystemManage.RoleSearchParams
+  type RoleSearchFormModel = {
+    roleName?: string
+    roleCode?: string
+    description?: string
+    type?: number
+    enabled?: boolean
+    createTimeRange?: [string, string]
+    updateTimeRange?: [string, string]
   }
 
   interface Props {
-    modelValue: RoleSearchFormParams
+    modelValue: RoleSearchFormModel
   }
 
   interface Emits {
-    (e: 'update:modelValue', value: RoleSearchFormParams): void
+    (e: 'update:modelValue', value: RoleSearchFormModel): void
     (e: 'search', params: RoleSearchFormParams): void
     (e: 'reset'): void
   }
@@ -51,6 +58,11 @@
     { label: 'common.status.disabled', value: false }
   ])
 
+  const typeOptions = ref([
+    { label: 'common.status.builtin', value: 0 },
+    { label: 'common.status.custom', value: 1 }
+  ])
+
   /**
    * 搜索表单配置项
    */
@@ -74,6 +86,15 @@
       clearable: true
     },
     {
+      label: 'pages.system.role.search.type',
+      key: 'type',
+      type: 'select',
+      props: {
+        options: typeOptions.value,
+        clearable: true
+      }
+    },
+    {
       label: 'pages.system.role.search.enabled',
       key: 'enabled',
       type: 'select',
@@ -83,28 +104,29 @@
       }
     },
     {
-      label: 'pages.system.role.search.daterange',
-      key: 'daterange',
-      type: 'datetime',
+      label: 'pages.system.role.search.createTimeRange',
+      key: 'createTimeRange',
+      type: 'datetimerange',
       props: {
         style: { width: '100%' },
-        placeholder: 'pages.system.role.search.placeholders.daterange',
-        type: 'daterange',
-        rangeSeparator: 'pages.system.role.search.rangeSeparator',
-        startPlaceholder: 'pages.system.role.search.placeholders.startDate',
-        endPlaceholder: 'pages.system.role.search.placeholders.endDate',
-        valueFormat: 'YYYY-MM-DD',
-        shortcuts: [
-          { text: 'pages.system.role.search.shortcuts.today', value: [new Date(), new Date()] },
-          {
-            text: 'pages.system.role.search.shortcuts.lastWeek',
-            value: [new Date(Date.now() - 604800000), new Date()]
-          },
-          {
-            text: 'pages.system.role.search.shortcuts.lastMonth',
-            value: [new Date(Date.now() - 2592000000), new Date()]
-          }
-        ]
+        clearable: true,
+        valueFormat: 'YYYY-MM-DD HH:mm:ss',
+        startPlaceholder: 'pages.system.role.search.placeholders.startTime',
+        endPlaceholder: 'pages.system.role.search.placeholders.endTime',
+        rangeSeparator: 'pages.system.role.search.rangeSeparator'
+      }
+    },
+    {
+      label: 'pages.system.role.search.updateTimeRange',
+      key: 'updateTimeRange',
+      type: 'datetimerange',
+      props: {
+        style: { width: '100%' },
+        clearable: true,
+        valueFormat: 'YYYY-MM-DD HH:mm:ss',
+        startPlaceholder: 'pages.system.role.search.placeholders.startTime',
+        endPlaceholder: 'pages.system.role.search.placeholders.endTime',
+        rangeSeparator: 'pages.system.role.search.rangeSeparator'
       }
     }
   ])
@@ -120,8 +142,18 @@
    * 处理搜索事件
    * 验证表单后触发搜索
    */
-  const handleSearch = async (params: RoleSearchFormParams) => {
+  const handleSearch = async (params: RoleSearchFormModel) => {
     await searchBarRef.value.validate()
-    emit('search', params)
+    emit('search', {
+      roleName: params.roleName,
+      roleCode: params.roleCode,
+      description: params.description,
+      type: params.type,
+      enabled: params.enabled,
+      createTimeStart: params.createTimeRange?.[0],
+      createTimeEnd: params.createTimeRange?.[1],
+      updateTimeStart: params.updateTimeRange?.[0],
+      updateTimeEnd: params.updateTimeRange?.[1]
+    })
   }
 </script>

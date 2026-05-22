@@ -4,7 +4,6 @@
       v-show="showSearchBar"
       v-model="searchForm"
       :items="searchItems"
-      :showExpand="false"
       @search="handleSearch"
       @reset="handleReset"
     />
@@ -551,7 +550,6 @@
   import VeloxButtonTable from '@/components/core/forms/velox-button-table/index.vue'
   import {
     type FileConfig,
-    type FileConfigQuery,
     type FileConfigSaveCommand,
     fetchFileConfigCreate,
     fetchFileConfigDelete,
@@ -599,6 +597,14 @@
     configJson: string
   }
 
+  type FileConfigSearchForm = {
+    name?: string
+    storage?: number
+    enabled?: number
+    createTimeRange?: [string, string]
+    updateTimeRange?: [string, string]
+  }
+
   const { hasAuth } = useAuth()
   const route = useRoute()
   const { t } = useI18n()
@@ -632,9 +638,12 @@
       : t('pages.config.fileConfig.form.tooltips.storage')
   )
 
-  const searchForm = ref<Partial<FileConfigQuery>>({
+  const searchForm = ref<FileConfigSearchForm>({
     name: undefined,
-    storage: undefined
+    storage: undefined,
+    enabled: undefined,
+    createTimeRange: undefined,
+    updateTimeRange: undefined
   })
   const showSearchBar = ref(false)
 
@@ -654,6 +663,44 @@
       props: {
         clearable: true,
         options: allStorageOptions.value
+      }
+    },
+    {
+      label: 'pages.config.fileConfig.search.enabled',
+      key: 'enabled',
+      type: 'select',
+      props: {
+        clearable: true,
+        options: [
+          { label: 'common.status.enabled', value: 1 },
+          { label: 'common.status.disabled', value: 0 }
+        ]
+      }
+    },
+    {
+      label: 'pages.config.fileConfig.search.createTimeRange',
+      key: 'createTimeRange',
+      type: 'datetimerange',
+      props: {
+        style: { width: '100%' },
+        clearable: true,
+        valueFormat: 'YYYY-MM-DD HH:mm:ss',
+        startPlaceholder: 'pages.config.fileConfig.search.placeholders.startTime',
+        endPlaceholder: 'pages.config.fileConfig.search.placeholders.endTime',
+        rangeSeparator: 'pages.config.fileConfig.search.rangeSeparator'
+      }
+    },
+    {
+      label: 'pages.config.fileConfig.search.updateTimeRange',
+      key: 'updateTimeRange',
+      type: 'datetimerange',
+      props: {
+        style: { width: '100%' },
+        clearable: true,
+        valueFormat: 'YYYY-MM-DD HH:mm:ss',
+        startPlaceholder: 'pages.config.fileConfig.search.placeholders.startTime',
+        endPlaceholder: 'pages.config.fileConfig.search.placeholders.endTime',
+        rangeSeparator: 'pages.config.fileConfig.search.rangeSeparator'
       }
     }
   ])
@@ -1282,9 +1329,15 @@
     }
   }
 
-  function handleSearch(params: Partial<FileConfigQuery>) {
+  function handleSearch(params: FileConfigSearchForm) {
     replaceSearchParams({
-      ...params,
+      name: params.name,
+      storage: params.storage,
+      enabled: params.enabled,
+      createTimeStart: params.createTimeRange?.[0],
+      createTimeEnd: params.createTimeRange?.[1],
+      updateTimeStart: params.updateTimeRange?.[0],
+      updateTimeEnd: params.updateTimeRange?.[1],
       page: 1
     })
     getData()
@@ -1293,7 +1346,10 @@
   function handleReset() {
     searchForm.value = {
       name: undefined,
-      storage: undefined
+      storage: undefined,
+      enabled: undefined,
+      createTimeRange: undefined,
+      updateTimeRange: undefined
     }
     resetSearchParams()
     getData()

@@ -4,10 +4,45 @@
       v-show="showSearchBar"
       v-model="searchForm"
       :items="searchItems"
-      :showExpand="false"
       @search="handleSearch"
       @reset="handleReset"
-    />
+    >
+      <template #sizeRange="{ modelValue }">
+        <div class="el-date-editor el-range-editor el-input__wrapper file-size-range">
+          <input
+            v-model="modelValue.sizeMin"
+            class="el-range-input"
+            inputmode="decimal"
+            :placeholder="t('pages.system.fileManage.search.placeholders.startSize')"
+          />
+          <ElSelect v-model="modelValue.sizeMinUnit" class="file-size-inline-select">
+            <ElOption
+              v-for="option in fileSizeUnitOptions"
+              :key="option.value"
+              :label="option.label"
+              :value="option.value"
+            />
+          </ElSelect>
+          <span class="el-range-separator">
+            {{ t('pages.system.fileManage.search.rangeSeparator') }}
+          </span>
+          <input
+            v-model="modelValue.sizeMax"
+            class="el-range-input"
+            inputmode="decimal"
+            :placeholder="t('pages.system.fileManage.search.placeholders.endSize')"
+          />
+          <ElSelect v-model="modelValue.sizeMaxUnit" class="file-size-inline-select">
+            <ElOption
+              v-for="option in fileSizeUnitOptions"
+              :key="option.value"
+              :label="option.label"
+              :value="option.value"
+            />
+          </ElSelect>
+        </div>
+      </template>
+    </VeloxSearchBar>
 
     <ElCard class="velox-table-card" :style="{ 'margin-top': showSearchBar ? '12px' : '0' }">
       <VeloxTableHeader
@@ -77,11 +112,12 @@
   import VeloxButtonTable from '@/components/core/forms/velox-button-table/index.vue'
   import {
     type FileRecord,
-    type FileQuery,
     fetchFileList,
     fetchFileDeleteById,
     fetchFileUpload,
-    fetchFilePresignGetUrl
+    fetchFilePresignGetUrl,
+    fetchFileDownloadBlob,
+    fetchFileTypes
   } from '@/api/file'
 
   defineOptions({ name: 'FileManage' })
@@ -90,16 +126,41 @@
   const route = useRoute()
   const { t } = useI18n()
 
-  const searchForm = ref<Partial<FileQuery>>({
-    path: undefined,
-    type: undefined
+  type FileSizeUnit = 'KB' | 'MB'
+
+  interface FileSearchForm {
+    name?: string
+    type?: string
+    sizeMin?: string
+    sizeMinUnit: FileSizeUnit
+    sizeMax?: string
+    sizeMaxUnit: FileSizeUnit
+    uploadTimeRange?: [string, string]
+  }
+
+  const fileTypeOptions = ref<string[]>([])
+  const fileSizeUnitOptions = computed<{ label: string; value: FileSizeUnit }[]>(() => [
+    { label: t('pages.system.fileManage.search.units.KB'), value: 'KB' },
+    { label: t('pages.system.fileManage.search.units.MB'), value: 'MB' }
+  ])
+
+  const createDefaultSearchForm = (): FileSearchForm => ({
+    name: undefined,
+    type: undefined,
+    sizeMin: undefined,
+    sizeMinUnit: 'KB',
+    sizeMax: undefined,
+    sizeMaxUnit: 'MB',
+    uploadTimeRange: undefined
   })
+
+  const searchForm = ref<FileSearchForm>(createDefaultSearchForm())
   const showSearchBar = ref(false)
 
   const searchItems = computed(() => [
     {
-      label: 'pages.system.fileManage.search.path',
-      key: 'path',
+      label: 'pages.system.fileManage.search.name',
+      key: 'name',
       type: 'input',
       props: {
         clearable: true
@@ -108,10 +169,30 @@
     {
       label: 'pages.system.fileManage.search.type',
       key: 'type',
-      type: 'input',
+      type: 'select',
       props: {
         clearable: true,
-        placeholder: 'pages.system.fileManage.search.placeholders.type'
+        filterable: true,
+        options: fileTypeOptions.value.map((type) => ({ label: type, value: type })),
+        placeholder: 'pages.system.fileManage.search.placeholders.type',
+        popperClass: 'file-type-select-dropdown'
+      }
+    },
+    {
+      label: 'pages.system.fileManage.search.sizeRange',
+      key: 'sizeRange'
+    },
+    {
+      label: 'pages.system.fileManage.search.uploadTimeRange',
+      key: 'uploadTimeRange',
+      type: 'datetimerange',
+      props: {
+        style: { width: '100%' },
+        clearable: true,
+        valueFormat: 'YYYY-MM-DD HH:mm:ss',
+        startPlaceholder: 'pages.system.fileManage.search.placeholders.startTime',
+        endPlaceholder: 'pages.system.fileManage.search.placeholders.endTime',
+        rangeSeparator: 'pages.system.fileManage.search.rangeSeparator'
       }
     }
   ])
@@ -212,9 +293,10 @@
           showOverflowTooltip: true
         },
         {
-          prop: 'createTime',
+          prop: 'uploadTime',
           label: 'pages.system.fileManage.columns.createTime',
-          minWidth: 180
+          minWidth: 180,
+          formatter: (row: FileRecord) => row.uploadTime || '-'
         },
         {
           prop: 'operation',
@@ -269,20 +351,51 @@
 
   async function handleDownload(row: FileRecord) {
     try {
-      let url = row.url
-      if (url) {
-        url = await fetchFilePresignGetUrl(url, 3600)
+      if (row.url) {
+        try {
+          const presignedUrl = await fetchFilePresignGetUrl(row.configId, row.url, 3600)
+          triggerAnchorDownload(presignedUrl, row.name)
+          return
+        } catch {
+          // Fall back to the streaming download endpoint when signed URLs are unavailable.
+        }
       }
-      const a = document.createElement('a')
-      a.href = url
-      a.download = row.name
-      a.target = '_blank'
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
+
+      const blob = await fetchFileDownloadBlob(row.id)
+      const objectUrl = URL.createObjectURL(blob)
+      triggerAnchorDownload(objectUrl, row.name)
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000)
     } catch {
       ElMessage.error(t('pages.system.fileManage.messages.downloadUrlFailed'))
     }
+  }
+
+  function triggerAnchorDownload(url: string, fileName: string) {
+    const a = document.createElement('a')
+    a.href = url
+    a.download = fileName
+    a.target = '_blank'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+  }
+
+  function parseFileSizeValue(value: string | undefined) {
+    if (value === undefined || value === null || value.trim() === '') return undefined
+    const parsedValue = Number(value)
+    if (!Number.isFinite(parsedValue) || parsedValue < 0) {
+      return null
+    }
+    return parsedValue
+  }
+
+  function convertSizeToBytes(value: number | undefined, unit: FileSizeUnit) {
+    if (value === undefined || value === null) return undefined
+    const multipliers: Record<FileSizeUnit, number> = {
+      KB: 1024,
+      MB: 1024 * 1024
+    }
+    return Math.floor(value * multipliers[unit])
   }
 
   async function handleDelete(row: FileRecord) {
@@ -300,13 +413,38 @@
     refreshData()
   }
 
-  function handleSearch(params: Partial<FileQuery>) {
-    replaceSearchParams({ ...params, page: 1 })
+  function handleSearch(params: Record<string, any>) {
+    const searchParams = params as FileSearchForm
+    const sizeMinValue = parseFileSizeValue(searchParams.sizeMin)
+    const sizeMaxValue = parseFileSizeValue(searchParams.sizeMax)
+
+    if (sizeMinValue === null || sizeMaxValue === null) {
+      ElMessage.warning(t('pages.system.fileManage.messages.invalidSizeValue'))
+      return
+    }
+
+    const sizeMinBytes = convertSizeToBytes(sizeMinValue, searchParams.sizeMinUnit)
+    const sizeMaxBytes = convertSizeToBytes(sizeMaxValue, searchParams.sizeMaxUnit)
+
+    if (sizeMinBytes !== undefined && sizeMaxBytes !== undefined && sizeMinBytes > sizeMaxBytes) {
+      ElMessage.warning(t('pages.system.fileManage.messages.invalidSizeRange'))
+      return
+    }
+
+    replaceSearchParams({
+      page: 1,
+      name: searchParams.name,
+      type: searchParams.type,
+      sizeMinBytes,
+      sizeMaxBytes,
+      uploadTimeStart: searchParams.uploadTimeRange?.[0],
+      uploadTimeEnd: searchParams.uploadTimeRange?.[1]
+    })
     getData()
   }
 
   function handleReset() {
-    searchForm.value = { path: undefined, type: undefined }
+    searchForm.value = createDefaultSearchForm()
     resetSearchParams()
     getData()
   }
@@ -349,4 +487,50 @@
       uploadLoading.value = false
     }
   }
+
+  async function loadFileTypes() {
+    fileTypeOptions.value = await fetchFileTypes()
+  }
+
+  onMounted(async () => {
+    await loadFileTypes()
+  })
 </script>
+
+<style scoped>
+  :global(.file-type-select-dropdown .el-scrollbar__wrap) {
+    max-height: 240px;
+  }
+
+  .file-size-range {
+    width: 100%;
+  }
+
+  :deep(.file-size-range .el-range-input) {
+    width: 26%;
+    text-align: left;
+  }
+
+  :deep(.file-size-range .el-range-separator) {
+    flex: initial;
+    padding: 0 4px;
+  }
+
+  .file-size-inline-select {
+    flex-shrink: 0;
+    width: 68px;
+  }
+
+  :deep(.file-size-inline-select .el-select__wrapper) {
+    min-height: 30px;
+    padding-right: 4px;
+    padding-left: 4px;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  :deep(.file-size-inline-select .el-select__selected-item),
+  :deep(.file-size-inline-select .el-select__placeholder) {
+    font-size: 13px;
+  }
+</style>

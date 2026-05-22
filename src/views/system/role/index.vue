@@ -73,20 +73,20 @@
   defineOptions({ name: 'Role' })
 
   type RoleListItem = Api.SystemManage.RoleListItem
-  type RoleSearchFormParams = Api.SystemManage.RoleSearchParams & {
-    daterange?: string[]
-  }
+  type RoleSearchFormParams = Api.SystemManage.RoleSearchParams
 
   const { hasAuth } = useAuth()
   const { t } = useI18n()
 
   // 搜索表单
-  const searchForm = ref<RoleSearchFormParams>({
+  const searchForm = ref({
     roleName: undefined,
     roleCode: undefined,
     description: undefined,
+    type: undefined,
     enabled: undefined,
-    daterange: undefined
+    createTimeRange: undefined as [string, string] | undefined,
+    updateTimeRange: undefined as [string, string] | undefined
   })
 
   const showSearchBar = ref(false)
@@ -119,8 +119,6 @@
         current: 1,
         size: 20
       },
-      // 排除 apiParams 中的属性
-      excludeParams: ['daterange'],
       columnsFactory: () => [
         { type: 'index', label: t('table.column.index'), minWidth: 60 },
         {
@@ -235,11 +233,7 @@
    * @param params 搜索参数
    */
   const handleSearch = (params: RoleSearchFormParams) => {
-    // 处理日期区间参数，把 daterange 转换为 startTime 和 endTime
-    const { daterange, ...filtersParams } = params
-    const [startTime, endTime] = Array.isArray(daterange) ? daterange : [null, null]
-
-    replaceSearchParams({ ...filtersParams, startTime, endTime })
+    replaceSearchParams(params)
     getData()
   }
 

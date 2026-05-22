@@ -6,7 +6,6 @@
       v-show="showSearchBar"
       v-model="formFilters"
       :items="formItems"
-      :showExpand="false"
       @reset="handleReset"
       @search="handleSearch"
     />
@@ -95,7 +94,10 @@
   // 搜索相关
   const initialSearchState = {
     name: '',
-    route: ''
+    route: '',
+    status: undefined as boolean | undefined,
+    createTimeRange: undefined as [string, string] | undefined,
+    updateTimeRange: undefined as [string, string] | undefined
   }
 
   const formFilters = reactive({ ...initialSearchState })
@@ -113,6 +115,44 @@
       key: 'route',
       type: 'input',
       props: { clearable: true }
+    },
+    {
+      label: 'pages.system.menu.search.status',
+      key: 'status',
+      type: 'select',
+      props: {
+        clearable: true,
+        options: [
+          { label: 'common.status.enabled', value: true },
+          { label: 'common.status.disabled', value: false }
+        ]
+      }
+    },
+    {
+      label: 'pages.system.menu.search.createTimeRange',
+      key: 'createTimeRange',
+      type: 'datetimerange',
+      props: {
+        style: { width: '100%' },
+        clearable: true,
+        valueFormat: 'YYYY-MM-DD HH:mm:ss',
+        startPlaceholder: 'pages.system.menu.search.placeholders.startTime',
+        endPlaceholder: 'pages.system.menu.search.placeholders.endTime',
+        rangeSeparator: 'pages.system.menu.search.rangeSeparator'
+      }
+    },
+    {
+      label: 'pages.system.menu.search.updateTimeRange',
+      key: 'updateTimeRange',
+      type: 'datetimerange',
+      props: {
+        style: { width: '100%' },
+        clearable: true,
+        valueFormat: 'YYYY-MM-DD HH:mm:ss',
+        startPlaceholder: 'pages.system.menu.search.placeholders.startTime',
+        endPlaceholder: 'pages.system.menu.search.placeholders.endTime',
+        rangeSeparator: 'pages.system.menu.search.rangeSeparator'
+      }
     }
   ])
 
@@ -339,6 +379,23 @@
     return cloned
   }
 
+  const parseDateTime = (value?: string | null) => {
+    if (!value) return null
+    const timestamp = Date.parse(value.replace(' ', 'T'))
+    return Number.isNaN(timestamp) ? null : timestamp
+  }
+
+  const matchesTimeRange = (value: string | undefined, start?: string, end?: string) => {
+    if (!start && !end) return true
+    const target = parseDateTime(value)
+    if (target === null) return false
+    const startTime = parseDateTime(start)
+    const endTime = parseDateTime(end)
+    if (startTime !== null && target < startTime) return false
+    if (endTime !== null && target > endTime) return false
+    return true
+  }
+
   /**
    * 将权限列表转换为子节点
    * @param items 菜单项数组
@@ -385,14 +442,31 @@
    */
   const searchMenu = (items: AppRouteRecord[]): AppRouteRecord[] => {
     const results: AppRouteRecord[] = []
+    const createTimeStart = appliedFilters.createTimeRange?.[0]
+    const createTimeEnd = appliedFilters.createTimeRange?.[1]
+    const updateTimeStart = appliedFilters.updateTimeRange?.[0]
+    const updateTimeEnd = appliedFilters.updateTimeRange?.[1]
 
     for (const item of items) {
       const searchName = appliedFilters.name?.toLowerCase().trim() || ''
       const searchRoute = appliedFilters.route?.toLowerCase().trim() || ''
+      const searchStatus = appliedFilters.status
       const menuTitle = formatMenuTitle(item.meta?.title || '').toLowerCase()
       const menuPath = (item.path || '').toLowerCase()
       const nameMatch = !searchName || menuTitle.includes(searchName)
       const routeMatch = !searchRoute || menuPath.includes(searchRoute)
+      const statusMatch =
+        searchStatus === undefined || (item.meta?.isEnable !== false) === searchStatus
+      const createTimeMatch = matchesTimeRange(
+        item.meta?.createTime,
+        createTimeStart,
+        createTimeEnd
+      )
+      const updateTimeMatch = matchesTimeRange(
+        item.meta?.updateTime,
+        updateTimeStart,
+        updateTimeEnd
+      )
 
       if (item.children?.length) {
         const matchedChildren = searchMenu(item.children)
@@ -404,7 +478,7 @@
         }
       }
 
-      if (nameMatch && routeMatch) {
+      if (nameMatch && routeMatch && statusMatch && createTimeMatch && updateTimeMatch) {
         results.push(deepClone(item))
       }
     }

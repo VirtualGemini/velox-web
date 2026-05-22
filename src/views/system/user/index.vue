@@ -92,7 +92,9 @@
     userGender: undefined,
     userPhone: undefined,
     userEmail: undefined,
-    status: undefined
+    status: undefined,
+    createTimeRange: undefined as [string, string] | undefined,
+    updateTimeRange: undefined as [string, string] | undefined
   })
 
   const showSearchBar = ref(false)

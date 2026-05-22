@@ -11,11 +11,21 @@
 </template>
 
 <script setup lang="ts">
+  type UserSearchFormModel = {
+    userName?: string
+    userGender?: string
+    userPhone?: string
+    userEmail?: string
+    status?: string
+    createTimeRange?: [string, string]
+    updateTimeRange?: [string, string]
+  }
+
   interface Props {
-    modelValue: Api.SystemManage.UserSearchParams
+    modelValue: UserSearchFormModel
   }
   interface Emits {
-    (e: 'update:modelValue', value: Api.SystemManage.UserSearchParams): void
+    (e: 'update:modelValue', value: UserSearchFormModel): void
     (e: 'search', params: Api.SystemManage.UserSearchParams): void
     (e: 'reset'): void
   }
@@ -92,6 +102,32 @@
           { label: 'pages.system.user.gender.female', value: '2' }
         ]
       }
+    },
+    {
+      label: 'pages.system.user.search.createTimeRange',
+      key: 'createTimeRange',
+      type: 'datetimerange',
+      props: {
+        style: { width: '100%' },
+        clearable: true,
+        valueFormat: 'YYYY-MM-DD HH:mm:ss',
+        startPlaceholder: 'pages.system.user.search.placeholders.startTime',
+        endPlaceholder: 'pages.system.user.search.placeholders.endTime',
+        rangeSeparator: 'pages.system.user.search.rangeSeparator'
+      }
+    },
+    {
+      label: 'pages.system.user.search.updateTimeRange',
+      key: 'updateTimeRange',
+      type: 'datetimerange',
+      props: {
+        style: { width: '100%' },
+        clearable: true,
+        valueFormat: 'YYYY-MM-DD HH:mm:ss',
+        startPlaceholder: 'pages.system.user.search.placeholders.startTime',
+        endPlaceholder: 'pages.system.user.search.placeholders.endTime',
+        rangeSeparator: 'pages.system.user.search.rangeSeparator'
+      }
     }
   ])
 
@@ -100,8 +136,18 @@
     emit('reset')
   }
 
-  async function handleSearch(params: Api.SystemManage.UserSearchParams) {
+  async function handleSearch(params: UserSearchFormModel) {
     await searchBarRef.value.validate()
-    emit('search', params)
+    emit('search', {
+      userName: params.userName,
+      userGender: params.userGender,
+      userPhone: params.userPhone,
+      userEmail: params.userEmail,
+      status: params.status,
+      createTimeStart: params.createTimeRange?.[0],
+      createTimeEnd: params.createTimeRange?.[1],
+      updateTimeStart: params.updateTimeRange?.[0],
+      updateTimeEnd: params.updateTimeRange?.[1]
+    })
   }
 </script>

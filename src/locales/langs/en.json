@@ -159,9 +159,12 @@
       "logoutTooltip": "Sign out"
     },
     "placeholder": {
-      "username": "Please enter your account",
+      "username": "Please enter account / phone / email",
       "password": "Please enter your password",
-      "slider": "Please slide to verify"
+      "slider": "Please slide to verify",
+      "email": "Please enter your email",
+      "phone": "Please enter your phone number",
+      "code": "Please enter the verification code"
     },
     "sliderText": "Please slide to verify",
     "sliderSuccessText": "Verification successful",
@@ -170,6 +173,24 @@
     "btnText": "Login",
     "noAccount": "No account yet?",
     "register": "Register",
+    "otherLogin": "Sign in with another method",
+    "passwordLogin": "Sign in with password",
+    "channel": {
+      "title": "Choose a sign-in method",
+      "subTitle": "Receive the verification code by phone or email",
+      "email": "Email",
+      "phone": "Phone"
+    },
+    "code": {
+      "emailTitle": "Sign in with email code",
+      "phoneTitle": "Sign in with phone code",
+      "subTitle": "Enter the code you received to sign in",
+      "sendBtn": "Send code",
+      "sent": "Verification code sent, please check",
+      "emailInvalid": "Invalid email format",
+      "phoneInvalid": "Invalid phone number format",
+      "phoneTodo": "Phone sign-in is not available yet"
+    },
     "success": {
       "title": "Login successful",
       "message": "Welcome back"
@@ -288,7 +309,18 @@
           "userPhone": "Phone",
           "userEmail": "Email",
           "status": "Status",
-          "userGender": "Gender"
+          "userGender": "Gender",
+          "createTimeRange": "Created Time",
+          "updateTimeRange": "Edited Time",
+          "rangeSeparator": "to",
+          "placeholders": {
+            "startTime": "Start Time",
+            "endTime": "End Time"
+          },
+          "createTimeStart": "Created From",
+          "createTimeEnd": "Created To",
+          "updateTimeStart": "Edited From",
+          "updateTimeEnd": "Edited To"
         },
         "columns": {
           "userInfo": "User Info",
@@ -367,13 +399,18 @@
           "roleName": "Role Name",
           "roleCode": "Role Code",
           "description": "Role Description",
+          "type": "Role Type",
           "enabled": "Role Status",
-          "daterange": "Created At",
+          "createTimeRange": "Created Time",
+          "updateTimeRange": "Edited Time",
+          "createTimeStart": "Created From",
+          "createTimeEnd": "Created To",
+          "updateTimeStart": "Edited From",
+          "updateTimeEnd": "Edited To",
           "rangeSeparator": "to",
           "placeholders": {
-            "daterange": "Please select a date range",
-            "startDate": "Start date",
-            "endDate": "End date"
+            "startTime": "Start Time",
+            "endTime": "End Time"
           },
           "shortcuts": {
             "today": "Today",
@@ -500,7 +537,19 @@
         },
         "search": {
           "name": "Menu Name",
-          "route": "Route Path"
+          "route": "Route Path",
+          "status": "Menu Status",
+          "createTimeRange": "Created Time",
+          "updateTimeRange": "Edited Time",
+          "rangeSeparator": "to",
+          "placeholders": {
+            "startTime": "Start Time",
+            "endTime": "End Time"
+          },
+          "createTimeStart": "Created From",
+          "createTimeEnd": "Created To",
+          "updateTimeStart": "Edited From",
+          "updateTimeEnd": "Edited To"
         },
         "columns": {
           "title": "Menu Name",
@@ -613,10 +662,23 @@
           "clickUpload": "click to upload"
         },
         "search": {
-          "path": "File Path",
+          "name": "File Name",
           "type": "File Type",
+          "sizeRange": "File Size Range",
+          "uploadTimeRange": "Upload Time",
+          "rangeSeparator": "to",
+          "createTimeStart": "Uploaded From",
+          "createTimeEnd": "Uploaded To",
+          "units": {
+            "KB": "KB",
+            "MB": "MB"
+          },
           "placeholders": {
-            "type": "For example image/jpeg"
+            "type": "Please select a file type",
+            "startSize": "Min",
+            "endSize": "Max",
+            "startTime": "Start Time",
+            "endTime": "End Time"
           }
         },
         "columns": {
@@ -630,6 +692,8 @@
         },
         "messages": {
           "downloadUrlFailed": "Failed to get download URL",
+          "invalidSizeValue": "Please enter a valid file size.",
+          "invalidSizeRange": "Invalid file size range. The minimum value cannot exceed the maximum value.",
           "confirmDelete": "Are you sure you want to delete file \"{name}\"? This action cannot be undone.",
           "deleteTitle": "Delete Confirmation",
           "deleteSuccess": "Deleted successfully",
@@ -734,7 +798,19 @@
         },
         "search": {
           "name": "Config Name",
-          "storage": "Storage Type"
+          "storage": "Storage Type",
+          "enabled": "Config Status",
+          "createTimeRange": "Created Time",
+          "updateTimeRange": "Edited Time",
+          "rangeSeparator": "to",
+          "placeholders": {
+            "startTime": "Start Time",
+            "endTime": "End Time"
+          },
+          "createTimeStart": "Created From",
+          "createTimeEnd": "Created To",
+          "updateTimeStart": "Edited From",
+          "updateTimeEnd": "Edited To"
         },
         "columns": {
           "name": "Config Name",
