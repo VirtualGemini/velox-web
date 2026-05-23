@@ -8,29 +8,7 @@
 
       <div class="auth-right-wrap">
         <div class="form">
-          <template v-if="showLoggedInCard">
-            <h3 class="title">{{ $t('login.loggedIn.title') }}</h3>
-            <p class="sub-title">{{ $t('login.loggedIn.subTitle') }}</p>
-            <div style="margin-top: 25px">
-              <VeloxLoggedInCard
-                :user-info="userInfo"
-                :selected="accountSelected"
-                @select="accountSelected = !accountSelected"
-                @logout="handleLogout"
-              />
-            </div>
-            <div style="margin-top: 30px">
-              <ElButton
-                class="w-full custom-height"
-                type="primary"
-                @click="handleContinue"
-                v-ripple
-              >
-                {{ $t('login.loggedIn.continueBtn') }}
-              </ElButton>
-            </div>
-          </template>
-          <template v-else>
+          <AuthLoggedInGuard>
             <h3 class="title">{{ $t('login.title') }}</h3>
             <p class="sub-title">{{ $t('login.subTitle') }}</p>
             <ElForm
@@ -117,7 +95,7 @@
                 }}</RouterLink>
               </div>
             </ElForm>
-          </template>
+          </AuthLoggedInGuard>
         </div>
       </div>
     </div>
@@ -130,13 +108,7 @@
   import { useI18n } from 'vue-i18n'
   import { HttpError } from '@/utils/http/error'
   import { fetchLogin } from '@/api/auth'
-  import {
-    ElMessage,
-    ElMessageBox,
-    ElNotification,
-    type FormInstance,
-    type FormRules
-  } from 'element-plus'
+  import { ElNotification, type FormInstance, type FormRules } from 'element-plus'
   import { useSettingStore } from '@/store/modules/setting'
 
   defineOptions({ name: 'Login' })
@@ -159,12 +131,6 @@
   const isPassing = ref(false)
   const isClickPass = ref(false)
 
-  const { getUserInfo: userInfo } = storeToRefs(userStore)
-  // 进入登录页时一次性快照：仅在挂载时已登录的情况下展示账号卡片
-  // 这样表单登录成功后 isLogin 翻转为 true 也不会在跳转前闪现卡片
-  const showLoggedInCard = ref(userStore.isLogin && !!userStore.accessToken)
-  const accountSelected = ref(false)
-
   const systemName = AppConfig.systemInfo.name
   const formRef = ref<FormInstance>()
 
@@ -180,32 +146,6 @@
   }))
 
   const loading = ref(false)
-
-  // 继续使用当前已登录账号
-  const handleContinue = () => {
-    if (!accountSelected.value) {
-      ElMessage.warning(t('login.loggedIn.selectTip'))
-      return
-    }
-    const redirect = route.query.redirect as string | undefined
-    router.push(redirect || '/')
-  }
-
-  // 退出当前账号，回到登录表单状态
-  const handleLogout = () => {
-    ElMessageBox.confirm(t('common.logOutTips'), t('common.tips'), {
-      confirmButtonText: t('common.confirm'),
-      cancelButtonText: t('common.cancel'),
-      customClass: 'login-out-dialog'
-    })
-      .then(() => {
-        showLoggedInCard.value = false
-        userStore.logOut()
-      })
-      .catch(() => {
-        // 用户取消，保持卡片显示
-      })
-  }
 
   // 登录
   const handleSubmit = async () => {

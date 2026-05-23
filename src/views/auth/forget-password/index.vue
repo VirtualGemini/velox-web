@@ -7,76 +7,78 @@
 
       <div class="auth-right-wrap">
         <div class="form">
-          <h3 class="title">{{ $t('forgetPassword.title') }}</h3>
-          <p class="sub-title">{{ $t('forgetPassword.subTitle') }}</p>
+          <AuthLoggedInGuard>
+            <h3 class="title">{{ $t('forgetPassword.title') }}</h3>
+            <p class="sub-title">{{ $t('forgetPassword.subTitle') }}</p>
 
-          <ElForm
-            ref="formRef"
-            :model="formData"
-            :rules="rules"
-            label-position="top"
-            class="mt-7.5"
-          >
-            <ElFormItem prop="email">
-              <ElInput
-                class="custom-height"
-                v-model.trim="formData.email"
-                :placeholder="$t('forgetPassword.placeholder')"
-              />
-            </ElFormItem>
-
-            <ElFormItem prop="code">
-              <div class="flex gap-3 w-full">
+            <ElForm
+              ref="formRef"
+              :model="formData"
+              :rules="rules"
+              label-position="top"
+              class="mt-7.5"
+            >
+              <ElFormItem prop="email">
                 <ElInput
-                  class="custom-height flex-1"
-                  v-model.trim="formData.code"
-                  :placeholder="$t('forgetPassword.codePlaceholder')"
+                  class="custom-height"
+                  v-model.trim="formData.email"
+                  :placeholder="$t('forgetPassword.placeholder')"
                 />
-                <ElButton class="custom-height" :disabled="countdown > 0" @click="sendCode">
-                  {{ countdown > 0 ? `${countdown}s` : $t('forgetPassword.sendCodeBtnText') }}
+              </ElFormItem>
+
+              <ElFormItem prop="code">
+                <div class="flex gap-3 w-full">
+                  <ElInput
+                    class="custom-height flex-1"
+                    v-model.trim="formData.code"
+                    :placeholder="$t('forgetPassword.codePlaceholder')"
+                  />
+                  <ElButton class="custom-height" :disabled="countdown > 0" @click="sendCode">
+                    {{ countdown > 0 ? `${countdown}s` : $t('forgetPassword.sendCodeBtnText') }}
+                  </ElButton>
+                </div>
+              </ElFormItem>
+
+              <ElFormItem prop="newPassword">
+                <ElInput
+                  class="custom-height"
+                  v-model.trim="formData.newPassword"
+                  :placeholder="$t('forgetPassword.newPasswordPlaceholder')"
+                  type="password"
+                  show-password
+                />
+              </ElFormItem>
+
+              <ElFormItem prop="confirmPassword">
+                <ElInput
+                  class="custom-height"
+                  v-model.trim="formData.confirmPassword"
+                  :placeholder="$t('forgetPassword.confirmPasswordPlaceholder')"
+                  type="password"
+                  show-password
+                  @keyup.enter="resetPassword"
+                />
+              </ElFormItem>
+
+              <div style="margin-top: 15px">
+                <ElButton
+                  class="w-full custom-height"
+                  type="primary"
+                  @click="resetPassword"
+                  :loading="loading"
+                  v-ripple
+                >
+                  {{ $t('forgetPassword.submitBtnText') }}
                 </ElButton>
               </div>
-            </ElFormItem>
 
-            <ElFormItem prop="newPassword">
-              <ElInput
-                class="custom-height"
-                v-model.trim="formData.newPassword"
-                :placeholder="$t('forgetPassword.newPasswordPlaceholder')"
-                type="password"
-                show-password
-              />
-            </ElFormItem>
-
-            <ElFormItem prop="confirmPassword">
-              <ElInput
-                class="custom-height"
-                v-model.trim="formData.confirmPassword"
-                :placeholder="$t('forgetPassword.confirmPasswordPlaceholder')"
-                type="password"
-                show-password
-                @keyup.enter="resetPassword"
-              />
-            </ElFormItem>
-
-            <div style="margin-top: 15px">
-              <ElButton
-                class="w-full custom-height"
-                type="primary"
-                @click="resetPassword"
-                :loading="loading"
-                v-ripple
-              >
-                {{ $t('forgetPassword.submitBtnText') }}
-              </ElButton>
-            </div>
-
-            <div style="margin-top: 15px">
-              <ElButton class="w-full custom-height" plain @click="toLogin">
-                {{ $t('forgetPassword.backBtnText') }}
-              </ElButton>
-            </div>
-          </ElForm>
+              <div style="margin-top: 15px">
+                <ElButton class="w-full custom-height" plain @click="toLogin">
+                  {{ $t('forgetPassword.backBtnText') }}
+                </ElButton>
+              </div>
+            </ElForm>
+          </AuthLoggedInGuard>
         </div>
       </div>
     </div>
