@@ -89,7 +89,9 @@ declare namespace Api {
       token: string
       refreshToken: string
       mfaChallenge?: string
+      mfaType?: 'email' | 'totp'
       mfaEmailMasked?: string
+      mfaTotpDigits?: number
     }
 
     interface MfaChallengeSendParams {
@@ -317,14 +319,53 @@ declare namespace Api {
         methods: string[]
       }
 
+      type EmailRebindProofType = 'current_email_code' | 'totp' | 'password'
+
+      interface EmailRebindProofVerifyCommand {
+        proofType: EmailRebindProofType
+        currentEmailCode?: string
+        totpCode?: string
+        currentPassword?: string
+      }
+
+      interface EmailRebindProof {
+        proofTicket: string
+        expiresInSeconds: number
+      }
+
+      interface EmailRebindSendCodeCommand {
+        newEmail: string
+        proofTicket: string
+      }
+
       interface EmailRebindCommand {
         newEmail: string
-        code: string
+        newEmailCode: string
+        proofTicket: string
       }
 
       interface MfaEmailUpdateCommand {
         enabled: boolean
         code?: string
+      }
+
+      interface MfaTotpProvision {
+        secret: string
+        otpAuthUri: string
+        issuer: string
+        accountName: string
+        digits: number
+        periodSeconds: number
+        algorithm: string
+      }
+
+      interface MfaTotpEnableCommand {
+        secret: string
+        code: string
+      }
+
+      interface MfaTotpDisableCommand {
+        code: string
       }
     }
   }

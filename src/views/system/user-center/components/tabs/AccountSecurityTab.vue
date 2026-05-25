@@ -5,6 +5,8 @@
   import { useSecurityStatus } from '../../composables/useSecurityStatus'
   import RebindEmailDialog from './dialogs/RebindEmailDialog.vue'
   import EnableMfaEmailDialog from './dialogs/EnableMfaEmailDialog.vue'
+  import EnableMfaTotpDialog from './dialogs/EnableMfaTotpDialog.vue'
+  import DisableMfaTotpDialog from './dialogs/DisableMfaTotpDialog.vue'
   import { fetchUpdateLoginMethods, fetchUpdateMfaEmail } from '@/api/security'
 
   defineProps<{
@@ -21,6 +23,8 @@
   const rebindEmailVisible = ref(false)
   const mfaDialogVisible = ref(false)
   const mfaTargetEnabled = ref(false)
+  const mfaTotpEnableVisible = ref(false)
+  const mfaTotpDisableVisible = ref(false)
 
   load()
 
@@ -30,6 +34,8 @@
   const isMethodAllowed = (key: string) => status.value?.allowedLoginMethods?.includes(key) ?? false
 
   const passwordRequired = computed(() => status.value?.passwordRequired ?? true)
+  const emailMfaOn = computed(() => status.value?.mfa?.email ?? false)
+  const totpMfaOn = computed(() => status.value?.mfa?.totp ?? false)
 
   const onMethodChange = async (key: string, value: boolean) => {
     if (!status.value) return
@@ -55,11 +61,15 @@
   }
 
   const onMfaEmailSwitchClick = () => {
+    if (totpMfaOn.value) {
+      ElMessage.warning(t('pages.system.userCenter.security.mfa.mutualExclusive'))
+      return
+    }
     if (!status.value?.email) {
       ElMessage.warning(t('pages.system.userCenter.security.mfa.email.noEmail'))
       return
     }
-    mfaTargetEnabled.value = !(status.value?.mfa?.email ?? false)
+    mfaTargetEnabled.value = !emailMfaOn.value
     mfaDialogVisible.value = true
   }
 
@@ -73,12 +83,33 @@
     }
   }
 
+  const onMfaTotpSwitchChange = (val: boolean) => {
+    if (val) {
+      if (emailMfaOn.value) {
+        ElMessage.warning(t('pages.system.userCenter.security.mfa.mutualExclusive'))
+        refresh()
+        return
+      }
+      mfaTotpEnableVisible.value = true
+    } else {
+      mfaTotpDisableVisible.value = true
+    }
+  }
+
   const onEmailRebound = (newEmail: string) => {
     emit('detail-updated', { email: newEmail })
     refresh()
   }
 
   const onMfaEmailEnabled = () => {
+    refresh()
+  }
+
+  const onMfaTotpEnabled = () => {
+    refresh()
+  }
+
+  const onMfaTotpDisabled = () => {
     refresh()
   }
 </script>
@@ -154,15 +185,45 @@
           {{ t('pages.system.userCenter.security.mfa.desc') }}
         </div>
 
+        <!-- TOTP（推荐） -->
         <div class="flex items-center justify-between">
-          <div class="text-sm">
-            {{ t('pages.system.userCenter.security.mfa.items.email') }}
-            <span v-if="status?.mfa?.email" class="ml-2 text-xs text-green-600">
-              {{ t('pages.system.userCenter.security.mfa.enabled') }}
-            </span>
+          <div>
+            <div class="text-sm flex items-center gap-2">
+              {{ t('pages.system.userCenter.security.mfa.items.totp') }}
+              <span class="px-1.5 py-0.5 text-[10px] rounded bg-theme/10 text-theme">
+                {{ t('pages.system.userCenter.security.mfa.recommended') }}
+              </span>
+              <span v-if="totpMfaOn" class="ml-1 text-xs text-green-600">
+                {{ t('pages.system.userCenter.security.mfa.enabled') }}
+              </span>
+            </div>
+            <div class="text-xs text-g-500 mt-1">
+              {{ t('pages.system.userCenter.security.mfa.totp.desc') }}
+            </div>
           </div>
           <ElSwitch
-            :model-value="status?.mfa?.email ?? false"
+            :model-value="totpMfaOn"
+            @click.stop
+            @change="(val: string | number | boolean) => onMfaTotpSwitchChange(Boolean(val))"
+          />
+        </div>
+
+        <!-- 邮箱二段 -->
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-sm">
+              {{ t('pages.system.userCenter.security.mfa.items.email') }}
+              <span v-if="emailMfaOn" class="ml-2 text-xs text-green-600">
+                {{ t('pages.system.userCenter.security.mfa.enabled') }}
+              </span>
+            </div>
+            <div v-if="totpMfaOn" class="text-xs text-g-500 mt-1">
+              {{ t('pages.system.userCenter.security.mfa.mutualExclusive') }}
+            </div>
+          </div>
+          <ElSwitch
+            :model-value="emailMfaOn"
+            :disabled="totpMfaOn"
             @click.stop
             @change="
               (val: string | number | boolean) => {
@@ -172,22 +233,13 @@
             "
           />
         </div>
-
-        <div class="flex items-center justify-between opacity-60">
-          <div class="text-sm">
-            {{ t('pages.system.userCenter.security.mfa.items.totp') }}
-            <span class="ml-2 text-xs text-g-500">
-              {{ t('pages.system.userCenter.security.mfa.comingSoon') }}
-            </span>
-          </div>
-          <ElSwitch :model-value="false" disabled />
-        </div>
       </div>
     </div>
 
     <RebindEmailDialog
       v-model:visible="rebindEmailVisible"
       :current-email="status?.email"
+      :totp-enabled="status?.mfa?.totp ?? false"
       @success="onEmailRebound"
     />
     <EnableMfaEmailDialog
@@ -195,5 +247,7 @@
       :enable="mfaTargetEnabled"
       @success="onMfaEmailEnabled"
     />
+    <EnableMfaTotpDialog v-model:visible="mfaTotpEnableVisible" @success="onMfaTotpEnabled" />
+    <DisableMfaTotpDialog v-model:visible="mfaTotpDisableVisible" @success="onMfaTotpDisabled" />
   </div>
 </template>

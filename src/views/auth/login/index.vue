@@ -170,14 +170,16 @@
         password
       })
 
-      const { token, refreshToken, mfaChallenge, mfaEmailMasked } = response
+      const { token, refreshToken, mfaChallenge, mfaType, mfaEmailMasked, mfaTotpDigits } = response
 
       if (mfaChallenge) {
         router.push({
           name: 'MfaChallenge',
           query: {
             challenge: mfaChallenge,
+            mfaType: mfaType || undefined,
             target: mfaEmailMasked || undefined,
+            mfaTotpDigits: mfaTotpDigits ? String(mfaTotpDigits) : undefined,
             redirect: route.query.redirect as string | undefined
           }
         })

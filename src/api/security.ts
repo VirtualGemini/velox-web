@@ -6,7 +6,20 @@ export function fetchSecurityStatus() {
   })
 }
 
-export function fetchSendEmailRebindCode(data: { newEmail: string }) {
+export function fetchSendEmailRebindProofCode() {
+  return request.post<void>({
+    url: '/api/user/security/email/rebind/proof/send-code'
+  })
+}
+
+export function fetchVerifyEmailRebindProof(data: Api.User.Security.EmailRebindProofVerifyCommand) {
+  return request.post<Api.User.Security.EmailRebindProof>({
+    url: '/api/user/security/email/rebind/proof/verify',
+    data
+  })
+}
+
+export function fetchSendEmailRebindCode(data: Api.User.Security.EmailRebindSendCodeCommand) {
   return request.post<void>({
     url: '/api/user/security/email/rebind/send-code',
     data
@@ -36,6 +49,26 @@ export function fetchSendMfaEmailCode() {
 export function fetchUpdateMfaEmail(data: Api.User.Security.MfaEmailUpdateCommand) {
   return request.put<boolean>({
     url: '/api/user/security/mfa/email',
+    data
+  })
+}
+
+export function fetchProvisionMfaTotp() {
+  return request.post<Api.User.Security.MfaTotpProvision>({
+    url: '/api/user/security/mfa/totp/provision'
+  })
+}
+
+export function fetchEnableMfaTotp(data: Api.User.Security.MfaTotpEnableCommand) {
+  return request.put<boolean>({
+    url: '/api/user/security/mfa/totp/enable',
+    data
+  })
+}
+
+export function fetchDisableMfaTotp(data: Api.User.Security.MfaTotpDisableCommand) {
+  return request.put<boolean>({
+    url: '/api/user/security/mfa/totp/disable',
     data
   })
 }

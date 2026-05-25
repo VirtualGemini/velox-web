@@ -1,4 +1,4 @@
-<!-- 登录二段验证页：输入邮箱二段验证码 -->
+<!-- 登录二段验证页：邮箱二段验证码 / TOTP 动态口令 -->
 <template>
   <div class="flex w-full h-screen">
     <LoginLeftView />
@@ -11,11 +11,7 @@
           <AuthLoggedInGuard>
             <h3 class="title">{{ $t('login.mfaChallenge.title') }}</h3>
             <p class="sub-title">
-              {{
-                target
-                  ? $t('login.mfaChallenge.subTitleWithTarget', { target })
-                  : $t('login.mfaChallenge.subTitle')
-              }}
+              {{ subTitleText }}
             </p>
 
             <ElForm
@@ -31,9 +27,11 @@
                   <ElInput
                     class="custom-height flex-1"
                     v-model.trim="formData.code"
-                    :placeholder="$t('login.placeholder.code')"
+                    :placeholder="codePlaceholder"
+                    :maxlength="isTotp ? totpDigits : undefined"
                   />
                   <ElButton
+                    v-if="!isTotp"
                     class="custom-height code-send-btn"
                     :disabled="countdown > 0 || sendingCode"
                     @click="handleSendCode"
@@ -91,6 +89,27 @@
 
   const challenge = computed(() => (route.query.challenge as string) || '')
   const target = computed(() => (route.query.target as string) || '')
+  const mfaType = computed(() => (route.query.mfaType as string) || 'email')
+  const totpDigits = computed(() => {
+    const raw = Number(route.query.mfaTotpDigits)
+    return Number.isFinite(raw) && raw > 0 ? raw : 6
+  })
+  const isTotp = computed(() => mfaType.value === 'totp')
+
+  const subTitleText = computed(() => {
+    if (isTotp.value) {
+      return t('login.mfaChallenge.totpSubTitle', { digits: totpDigits.value })
+    }
+    return target.value
+      ? t('login.mfaChallenge.subTitleWithTarget', { target: target.value })
+      : t('login.mfaChallenge.subTitle')
+  })
+
+  const codePlaceholder = computed(() =>
+    isTotp.value
+      ? t('login.mfaChallenge.totpPlaceholder', { digits: totpDigits.value })
+      : t('login.placeholder.code')
+  )
 
   const formData = reactive({
     code: ''
