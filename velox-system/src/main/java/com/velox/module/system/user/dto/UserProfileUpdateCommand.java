@@ -4,6 +4,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import java.util.List;
 
 public class UserProfileUpdateCommand {
 
@@ -30,6 +31,17 @@ public class UserProfileUpdateCommand {
 
     @Size(max = 1000, message = "个人介绍长度不能超过 1000 个字符")
     private String introduction;
+
+    @Size(max = 255, message = "个性签名长度不能超过 255 个字符")
+    private String signature;
+
+    @Size(max = 50, message = "职位长度不能超过 50 个字符")
+    private String position;
+
+    @Size(max = 100, message = "公司长度不能超过 100 个字符")
+    private String company;
+
+    private List<@Size(max = 16, message = "单个标签长度不能超过 16 个字符") String> tags;
 
     public String getRealName() {
         return realName;
@@ -85,5 +97,37 @@ public class UserProfileUpdateCommand {
 
     public void setIntroduction(String introduction) {
         this.introduction = introduction;
+    }
+
+    public String getSignature() {
+        return signature;
+    }
+
+    public void setSignature(String signature) {
+        this.signature = signature;
+    }
+
+    public String getPosition() {
+        return position;
+    }
+
+    public void setPosition(String position) {
+        this.position = position;
+    }
+
+    public String getCompany() {
+        return company;
+    }
+
+    public void setCompany(String company) {
+        this.company = company;
+    }
+
+    public List<String> getTags() {
+        return tags;
+    }
+
+    public void setTags(List<String> tags) {
+        this.tags = tags;
     }
 }

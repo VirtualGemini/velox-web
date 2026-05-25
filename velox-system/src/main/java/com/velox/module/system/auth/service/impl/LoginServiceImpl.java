@@ -2,26 +2,21 @@ package com.velox.module.system.auth.service.impl;
 
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.velox.common.exception.ApiException;
 import com.velox.common.exception.BusinessErrorCode;
 import com.velox.email.api.builder.EmailBuilder;
 import com.velox.email.api.message.SendResponse;
 import com.velox.email.common.error.EmailErrorCode;
-import com.velox.module.system.domain.model.Profile;
-import com.velox.module.system.domain.model.Role;
-import com.velox.module.system.domain.model.User;
-import com.velox.module.system.domain.model.UserRole;
 import com.velox.framework.security.api.session.SecuritySessionService;
 import com.velox.framework.security.properties.SecurityProperties;
-import com.velox.module.system.persistence.ProfileMapper;
-import com.velox.module.system.persistence.RoleMapper;
-import com.velox.module.system.persistence.UserRoleMapper;
-import com.velox.module.system.persistence.UserMapper;
 import com.velox.module.system.auth.dto.CaptchaDTO;
 import com.velox.module.system.auth.dto.CodeLoginCommand;
 import com.velox.module.system.auth.dto.ForgotPasswordCodeCommand;
 import com.velox.module.system.auth.dto.LoginCodeSendCommand;
 import com.velox.module.system.auth.dto.LoginCommand;
+import com.velox.module.system.auth.dto.MfaChallengeSendCodeCommand;
+import com.velox.module.system.auth.dto.MfaChallengeVerifyCommand;
 import com.velox.module.system.auth.dto.RegisterCommand;
 import com.velox.module.system.auth.dto.ResetPasswordCommand;
 import com.velox.module.system.auth.dto.TokenDTO;
@@ -29,12 +24,29 @@ import com.velox.module.system.auth.service.LoginService;
 import com.velox.module.system.auth.service.PasswordCipherService;
 import com.velox.module.system.auth.status.ActiveUserStatusService;
 import com.velox.module.system.auth.store.VerificationCodeStore;
+import com.velox.module.system.domain.model.Profile;
+import com.velox.module.system.domain.model.Role;
+import com.velox.module.system.domain.model.User;
+import com.velox.module.system.domain.model.UserRole;
+import com.velox.module.system.domain.model.UserSecurity;
 import com.velox.module.system.domain.model.UserSession;
 import com.velox.module.system.id.generator.SystemEntityIdGenerator;
+import com.velox.module.system.persistence.ProfileMapper;
+import com.velox.module.system.persistence.RoleMapper;
+import com.velox.module.system.persistence.UserMapper;
+import com.velox.module.system.persistence.UserRoleMapper;
+import com.velox.module.system.persistence.UserSecurityMapper;
 import com.wf.captcha.SpecCaptcha;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
+
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class LoginServiceImpl implements LoginService {
@@ -47,6 +59,7 @@ public class LoginServiceImpl implements LoginService {
     private final ProfileMapper profileMapper;
     private final RoleMapper roleMapper;
     private final UserRoleMapper userRoleMapper;
+    private final UserSecurityMapper userSecurityMapper;
     private final PasswordCipherService passwordCipherService;
     private final SecurityProperties securityProperties;
     private final SystemEntityIdGenerator entityIdGenerator;
@@ -59,6 +72,7 @@ public class LoginServiceImpl implements LoginService {
                             ProfileMapper profileMapper,
                             RoleMapper roleMapper,
                             UserRoleMapper userRoleMapper,
+                            UserSecurityMapper userSecurityMapper,
                             PasswordCipherService passwordCipherService,
                             SecurityProperties securityProperties,
                             SystemEntityIdGenerator entityIdGenerator,
@@ -70,6 +84,7 @@ public class LoginServiceImpl implements LoginService {
         this.profileMapper = profileMapper;
         this.roleMapper = roleMapper;
         this.userRoleMapper = userRoleMapper;
+        this.userSecurityMapper = userSecurityMapper;
         this.passwordCipherService = passwordCipherService;
         this.securityProperties = securityProperties;
         this.entityIdGenerator = entityIdGenerator;
@@ -127,33 +142,28 @@ public class LoginServiceImpl implements LoginService {
             throw new ApiException(BusinessErrorCode.ACCOUNT_DISABLED);
         }
 
+        UserSecurity security = ensureUserSecurity(user);
+        ensureLoginMethodAllowed(security, "password");
+
         resetLoginFailCount(user);
         upgradePasswordIfNeeded(user, password);
 
-        String sessionId = entityIdGenerator.nextId(UserSession.class);
-        String token = securitySessionService.login(user.getId(), sessionId);
-        try {
-            activeUserStatusService.recordLogin(user.getId(), sessionId, token);
-        } catch (RuntimeException exception) {
-            try {
-                securitySessionService.logout();
-            } catch (RuntimeException ignored) {
-                // 会话表写入失败时优先回滚当前 token，避免发出不可追踪的登录态。
-            }
-            throw exception;
+        if (shouldIssueMfaChallenge(security)) {
+            return issueMfaChallenge(user);
         }
 
-        return new TokenDTO(token, null);
+        return performLogin(user);
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void register(RegisterCommand command) {
         if (!command.getPassword().equals(command.getConfirmPassword())) {
             throw new ApiException(BusinessErrorCode.PASSWORD_MISMATCH);
         }
 
         User existUser = userMapper.selectOne(
-            new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<User>()
+            new LambdaQueryWrapper<User>()
                 .eq(User::getDeleted, 0)
                 .eq(User::getUsername, command.getUsername())
         );
@@ -181,7 +191,7 @@ public class LoginServiceImpl implements LoginService {
         profile.setDeleted(0);
         profileMapper.insert(profile);
 
-        Role defaultRole = roleMapper.selectOne(new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<Role>()
+        Role defaultRole = roleMapper.selectOne(new LambdaQueryWrapper<Role>()
                 .eq(Role::getDeleted, 0)
                 .eq(Role::getRoleCode, "R_USER")
                 .last("limit 1"));
@@ -193,6 +203,16 @@ public class LoginServiceImpl implements LoginService {
             userRole.setDeleted(0);
             userRoleMapper.insert(userRole);
         }
+
+        UserSecurity security = new UserSecurity();
+        security.setId(entityIdGenerator.nextId(UserSecurity.class));
+        security.setUserId(user.getId());
+        security.setLoginMethods(String.join(",",
+                securityProperties.getAccount().getLoginMethods().getDefaults()));
+        security.setMfaEmailEnabled(0);
+        security.setMfaTotpEnabled(0);
+        security.setDeleted(0);
+        userSecurityMapper.insert(security);
     }
 
     @Override
@@ -278,10 +298,6 @@ public class LoginServiceImpl implements LoginService {
     @Override
     public void sendLoginCode(LoginCodeSendCommand command) {
         String type = command.getType() == null ? "" : command.getType().trim().toLowerCase();
-        if ("phone".equals(type)) {
-            // 手机号验证码登录：占位，未来接入短信能力时再实现。
-            throw new ApiException(BusinessErrorCode.PHONE_LOGIN_NOT_SUPPORTED);
-        }
         if (!"email".equals(type)) {
             throw new ApiException(BusinessErrorCode.EMAIL_REQUIRED);
         }
@@ -325,9 +341,6 @@ public class LoginServiceImpl implements LoginService {
     @Transactional(rollbackFor = Exception.class)
     public TokenDTO loginByCode(CodeLoginCommand command) {
         String type = command.getType() == null ? "" : command.getType().trim().toLowerCase();
-        if ("phone".equals(type)) {
-            throw new ApiException(BusinessErrorCode.PHONE_LOGIN_NOT_SUPPORTED);
-        }
         if (!"email".equals(type)) {
             throw new ApiException(BusinessErrorCode.EMAIL_REQUIRED);
         }
@@ -358,8 +371,91 @@ public class LoginServiceImpl implements LoginService {
             throw new ApiException(BusinessErrorCode.ACCOUNT_DISABLED);
         }
 
+        UserSecurity security = ensureUserSecurity(user);
+        ensureLoginMethodAllowed(security, "email_code");
+
         resetLoginFailCount(user);
 
+        // 邮箱二段验证仅对密码登录生效：邮箱验证码登录本身已经验证过邮箱所有权，
+        // 再叠一次邮箱码既是冗余也是骚扰。
+        return performLogin(user);
+    }
+
+    @Override
+    public void sendMfaChallengeCode(MfaChallengeSendCodeCommand command) {
+        String userId = verificationCodeStore.peekMfaChallenge(command.getChallenge());
+        if (!StringUtils.hasText(userId)) {
+            throw new ApiException(BusinessErrorCode.MFA_CHALLENGE_INVALID);
+        }
+        User user = userMapper.selectOne(new LambdaQueryWrapper<User>()
+                .eq(User::getId, userId)
+                .eq(User::getDeleted, 0)
+                .last("limit 1"));
+        if (user == null) {
+            throw new ApiException(BusinessErrorCode.USER_NOT_FOUND);
+        }
+        String email = normalizeEmail(user.getEmail());
+        if (email == null || !EMAIL_PATTERN.matcher(email).matches()) {
+            throw new ApiException(BusinessErrorCode.EMAIL_NOT_BOUND_TO_USER);
+        }
+
+        EmailBuilder emailBuilder = requireEmailBuilder();
+        SecurityProperties.Account.Mfa.Email mfaConfig = securityProperties.getAccount().getMfa().getEmail();
+        String code = RandomUtil.randomNumbers(6);
+        if (!verificationCodeStore.trySaveMfaCode(userId, code,
+                mfaConfig.getTtlSeconds(), mfaConfig.getResendIntervalSeconds())) {
+            throw new ApiException(BusinessErrorCode.MFA_CODE_SEND_TOO_FREQUENT);
+        }
+        try {
+            SendResponse response = emailBuilder.to(email)
+                    .subject("登录二段验证码")
+                    .text(buildMfaCodeContent(user.getUsername(), code))
+                    .sendSync();
+            if (!response.success()) {
+                verificationCodeStore.invalidateMfaCode(userId);
+                if (response.errorCode() == EmailErrorCode.DISABLED.code()) {
+                    throw new ApiException(BusinessErrorCode.EMAIL_SERVICE_DISABLED);
+                }
+                throw new ApiException(BusinessErrorCode.EMAIL_SEND_FAILED);
+            }
+        } catch (ApiException exception) {
+            throw exception;
+        } catch (RuntimeException exception) {
+            verificationCodeStore.invalidateMfaCode(userId);
+            throw new ApiException(exception, BusinessErrorCode.EMAIL_SEND_FAILED);
+        }
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public TokenDTO verifyMfaChallenge(MfaChallengeVerifyCommand command) {
+        String userId = verificationCodeStore.peekMfaChallenge(command.getChallenge());
+        if (!StringUtils.hasText(userId)) {
+            throw new ApiException(BusinessErrorCode.MFA_CHALLENGE_EXPIRED);
+        }
+        User user = userMapper.selectOne(new LambdaQueryWrapper<User>()
+                .eq(User::getId, userId)
+                .eq(User::getDeleted, 0)
+                .last("limit 1"));
+        if (user == null) {
+            throw new ApiException(BusinessErrorCode.USER_NOT_FOUND);
+        }
+
+        VerificationCodeStore.VerificationResult result =
+                verificationCodeStore.verifyMfaCode(userId, command.getCode());
+        if (result == VerificationCodeStore.VerificationResult.EXPIRED) {
+            throw new ApiException(BusinessErrorCode.MFA_CODE_EXPIRED);
+        }
+        if (result == VerificationCodeStore.VerificationResult.INVALID) {
+            throw new ApiException(BusinessErrorCode.MFA_CODE_ERROR);
+        }
+
+        verificationCodeStore.consumeMfaChallenge(command.getChallenge());
+
+        return performLogin(user);
+    }
+
+    private TokenDTO performLogin(User user) {
         String sessionId = entityIdGenerator.nextId(UserSession.class);
         String token = securitySessionService.login(user.getId(), sessionId);
         try {
@@ -372,8 +468,86 @@ public class LoginServiceImpl implements LoginService {
             }
             throw exception;
         }
-
         return new TokenDTO(token, null);
+    }
+
+    private boolean shouldIssueMfaChallenge(UserSecurity security) {
+        SecurityProperties.Account.Mfa mfaConfig = securityProperties.getAccount().getMfa();
+        if (!mfaConfig.getEmail().isEnabled()) {
+            return false;
+        }
+        return security != null && Integer.valueOf(1).equals(security.getMfaEmailEnabled());
+    }
+
+    private TokenDTO issueMfaChallenge(User user) {
+        String challenge = IdUtil.simpleUUID();
+        SecurityProperties.Account.Mfa.Email mfaConfig = securityProperties.getAccount().getMfa().getEmail();
+        verificationCodeStore.saveMfaChallenge(challenge, user.getId(), mfaConfig.getChallengeTtlSeconds());
+        TokenDTO dto = new TokenDTO();
+        dto.setMfaChallenge(challenge);
+        dto.setMfaEmailMasked(maskEmail(user.getEmail()));
+        return dto;
+    }
+
+    private String maskEmail(String email) {
+        if (!StringUtils.hasText(email)) {
+            return "";
+        }
+        int at = email.indexOf('@');
+        if (at <= 0) {
+            return email;
+        }
+        String local = email.substring(0, at);
+        String domain = email.substring(at);
+        if (local.length() <= 2) {
+            return local.charAt(0) + "***" + domain;
+        }
+        return local.charAt(0) + "***" + local.charAt(local.length() - 1) + domain;
+    }
+
+    private UserSecurity ensureUserSecurity(User user) {
+        UserSecurity security = userSecurityMapper.selectOne(new LambdaQueryWrapper<UserSecurity>()
+                .eq(UserSecurity::getUserId, user.getId())
+                .eq(UserSecurity::getDeleted, 0)
+                .last("limit 1"));
+        if (security != null) {
+            return security;
+        }
+        UserSecurity created = new UserSecurity();
+        created.setId(entityIdGenerator.nextId(UserSecurity.class));
+        created.setUserId(user.getId());
+        created.setLoginMethods(String.join(",",
+                securityProperties.getAccount().getLoginMethods().getDefaults()));
+        created.setMfaEmailEnabled(0);
+        created.setMfaTotpEnabled(0);
+        created.setDeleted(0);
+        userSecurityMapper.insert(created);
+        return created;
+    }
+
+    private void ensureLoginMethodAllowed(UserSecurity security, String method) {
+        List<String> enabled = securityProperties.getAccount().getLoginMethods().getEnabled();
+        if (enabled == null || !enabled.contains(method)) {
+            throw new ApiException(BusinessErrorCode.LOGIN_METHOD_DISABLED);
+        }
+        List<String> stored = parseLoginMethods(security.getLoginMethods());
+        if (stored.isEmpty()) {
+            stored = securityProperties.getAccount().getLoginMethods().getDefaults();
+        }
+        if (!stored.contains(method)) {
+            throw new ApiException(BusinessErrorCode.LOGIN_METHOD_DISABLED);
+        }
+    }
+
+    private List<String> parseLoginMethods(String methods) {
+        if (!StringUtils.hasText(methods)) {
+            return List.of();
+        }
+        return Arrays.stream(methods.split(","))
+                .map(String::trim)
+                .filter(StringUtils::hasText)
+                .distinct()
+                .collect(Collectors.toList());
     }
 
     private void validateCaptchaIfPresent(String captchaCode, String key) {
@@ -401,7 +575,7 @@ public class LoginServiceImpl implements LoginService {
         if (user.getLoginFailTime() == null) {
             return;
         }
-        java.time.LocalDateTime now = java.time.LocalDateTime.now(java.time.ZoneOffset.UTC);
+        LocalDateTime now = LocalDateTime.now(ZoneOffset.UTC);
         if (user.getLoginFailTime().isAfter(now)) {
             throw new ApiException(BusinessErrorCode.ACCOUNT_LOCKED);
         }
@@ -415,7 +589,7 @@ public class LoginServiceImpl implements LoginService {
         user.setLoginFailCount(failCount + 1);
 
         if (failCount + 1 >= securityProperties.getLogin().getMaxFailCount()) {
-            user.setLoginFailTime(java.time.LocalDateTime.now(java.time.ZoneOffset.UTC)
+            user.setLoginFailTime(LocalDateTime.now(ZoneOffset.UTC)
                     .plusMinutes(securityProperties.getLogin().getLockMinutes()));
         }
 
@@ -445,7 +619,7 @@ public class LoginServiceImpl implements LoginService {
 
     private User findUserByEmail(String email) {
         return userMapper.selectOne(
-                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<User>()
+                new LambdaQueryWrapper<User>()
                         .eq(User::getDeleted, 0)
                         .eq(User::getEmail, email)
                         .last("limit 1")
@@ -459,7 +633,7 @@ public class LoginServiceImpl implements LoginService {
         String trimmed = account.trim();
 
         User user = userMapper.selectOne(
-                new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<User>()
+                new LambdaQueryWrapper<User>()
                         .eq(User::getDeleted, 0)
                         .eq(User::getUsername, trimmed)
                         .last("limit 1")
@@ -470,7 +644,7 @@ public class LoginServiceImpl implements LoginService {
 
         if (PHONE_PATTERN.matcher(trimmed).matches()) {
             user = userMapper.selectOne(
-                    new com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper<User>()
+                    new LambdaQueryWrapper<User>()
                             .eq(User::getDeleted, 0)
                             .eq(User::getPhone, trimmed)
                             .last("limit 1")
@@ -507,6 +681,14 @@ public class LoginServiceImpl implements LoginService {
                 + "您正在通过邮箱验证码登录。\n"
                 + "本次登录验证码为：" + code + "\n"
                 + "验证码 10 分钟内有效，请勿泄露给他人。\n\n"
+                + "如果这不是您的操作，请尽快修改密码。";
+    }
+
+    private String buildMfaCodeContent(String username, String code) {
+        return "您好，" + username + "：\n\n"
+                + "您正在通过邮箱二段验证完成登录。\n"
+                + "本次验证码为：" + code + "\n"
+                + "验证码 5 分钟内有效，请勿泄露给他人。\n\n"
                 + "如果这不是您的操作，请尽快修改密码。";
     }
 

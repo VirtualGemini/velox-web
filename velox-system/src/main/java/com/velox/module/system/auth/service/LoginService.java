@@ -5,6 +5,8 @@ import com.velox.module.system.auth.dto.CodeLoginCommand;
 import com.velox.module.system.auth.dto.ForgotPasswordCodeCommand;
 import com.velox.module.system.auth.dto.LoginCodeSendCommand;
 import com.velox.module.system.auth.dto.LoginCommand;
+import com.velox.module.system.auth.dto.MfaChallengeSendCodeCommand;
+import com.velox.module.system.auth.dto.MfaChallengeVerifyCommand;
 import com.velox.module.system.auth.dto.RegisterCommand;
 import com.velox.module.system.auth.dto.ResetPasswordCommand;
 import com.velox.module.system.auth.dto.TokenDTO;
@@ -26,4 +28,8 @@ public interface LoginService {
     TokenDTO loginByCode(CodeLoginCommand command);
 
     void logout();
+
+    void sendMfaChallengeCode(MfaChallengeSendCodeCommand command);
+
+    TokenDTO verifyMfaChallenge(MfaChallengeVerifyCommand command);
 }

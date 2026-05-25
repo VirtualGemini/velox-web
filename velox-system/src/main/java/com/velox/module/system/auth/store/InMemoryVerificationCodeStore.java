@@ -16,6 +16,8 @@ public class InMemoryVerificationCodeStore extends AbstractVerificationCodeStore
     private final AtomicInteger operationCounter = new AtomicInteger();
     private final Object resetCodeMutex = new Object();
     private final Object loginCodeMutex = new Object();
+    private final Object rebindCodeMutex = new Object();
+    private final Object mfaCodeMutex = new Object();
 
     public InMemoryVerificationCodeStore(SecurityProperties securityProperties) {
         super(securityProperties);
@@ -113,6 +115,92 @@ public class InMemoryVerificationCodeStore extends AbstractVerificationCodeStore
     @Override
     public boolean loginCodeExists(String target) {
         return get(LOGIN_CODE_PREFIX + target) != null;
+    }
+
+    @Override
+    public boolean trySaveRebindCode(String scope, String target, String code, int ttlSeconds, int resendIntervalSeconds) {
+        synchronized (rebindCodeMutex) {
+            cleanupExpiredEntriesIfNeeded();
+            if (peek(rebindSentKey(scope, target)) != null) {
+                return false;
+            }
+            put(rebindKey(scope, target), digest(code), Duration.ofSeconds(ttlSeconds));
+            put(rebindSentKey(scope, target), "1", Duration.ofSeconds(resendIntervalSeconds));
+            return true;
+        }
+    }
+
+    @Override
+    public void invalidateRebindCode(String scope, String target) {
+        synchronized (rebindCodeMutex) {
+            store.remove(rebindKey(scope, target));
+            store.remove(rebindSentKey(scope, target));
+        }
+    }
+
+    @Override
+    public VerificationResult verifyRebindCode(String scope, String target, String code) {
+        return compareAndDeleteIfMatch(rebindKey(scope, target), digest(code));
+    }
+
+    @Override
+    public boolean rebindCodeExists(String scope, String target) {
+        return get(rebindKey(scope, target)) != null;
+    }
+
+    @Override
+    public boolean trySaveMfaCode(String userId, String code, int ttlSeconds, int resendIntervalSeconds) {
+        synchronized (mfaCodeMutex) {
+            cleanupExpiredEntriesIfNeeded();
+            if (peek(MFA_CODE_SENT_PREFIX + userId) != null) {
+                return false;
+            }
+            put(MFA_CODE_PREFIX + userId, digest(code), Duration.ofSeconds(ttlSeconds));
+            put(MFA_CODE_SENT_PREFIX + userId, "1", Duration.ofSeconds(resendIntervalSeconds));
+            return true;
+        }
+    }
+
+    @Override
+    public void invalidateMfaCode(String userId) {
+        synchronized (mfaCodeMutex) {
+            store.remove(MFA_CODE_PREFIX + userId);
+            store.remove(MFA_CODE_SENT_PREFIX + userId);
+        }
+    }
+
+    @Override
+    public VerificationResult verifyMfaCode(String userId, String code) {
+        return compareAndDeleteIfMatch(MFA_CODE_PREFIX + userId, digest(code));
+    }
+
+    @Override
+    public boolean mfaCodeExists(String userId) {
+        return get(MFA_CODE_PREFIX + userId) != null;
+    }
+
+    @Override
+    public void saveMfaChallenge(String challengeToken, String userId, int ttlSeconds) {
+        put(MFA_CHALLENGE_PREFIX + challengeToken, userId, Duration.ofSeconds(ttlSeconds));
+    }
+
+    @Override
+    public String consumeMfaChallenge(String challengeToken) {
+        AtomicReference<String> result = new AtomicReference<>();
+        store.compute(MFA_CHALLENGE_PREFIX + challengeToken, (ignored, existing) -> {
+            if (existing == null || existing.expiredAtMillis() <= System.currentTimeMillis()) {
+                return null;
+            }
+            result.set(existing.value());
+            return null;
+        });
+        return result.get();
+    }
+
+    @Override
+    public String peekMfaChallenge(String challengeToken) {
+        ExpiringValue value = peek(MFA_CHALLENGE_PREFIX + challengeToken);
+        return value == null ? null : value.value();
     }
 
     private void put(String key, String value, Duration ttl) {

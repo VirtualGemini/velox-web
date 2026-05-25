@@ -39,7 +39,7 @@ public class RedisVerificationCodeStore extends AbstractVerificationCodeStore {
             Long.class
     );
 
-    private static final DefaultRedisScript<Long> SAVE_RESET_CODE_IF_ALLOWED_SCRIPT = new DefaultRedisScript<>(
+    private static final DefaultRedisScript<Long> SAVE_CODE_IF_ALLOWED_SCRIPT = new DefaultRedisScript<>(
             """
                     if redis.call('EXISTS', KEYS[2]) == 1 then
                         return 0
@@ -80,7 +80,7 @@ public class RedisVerificationCodeStore extends AbstractVerificationCodeStore {
     @Override
     public boolean trySaveResetCode(String email, String code) {
         Long result = stringRedisTemplate.execute(
-                SAVE_RESET_CODE_IF_ALLOWED_SCRIPT,
+                SAVE_CODE_IF_ALLOWED_SCRIPT,
                 List.of(RESET_PREFIX + email, RESET_SENT_PREFIX + email),
                 digest(code),
                 String.valueOf(securityProperties.getVerification().getResetCodeTtlSeconds()),
@@ -107,7 +107,7 @@ public class RedisVerificationCodeStore extends AbstractVerificationCodeStore {
     @Override
     public boolean trySaveLoginCode(String target, String code) {
         Long result = stringRedisTemplate.execute(
-                SAVE_RESET_CODE_IF_ALLOWED_SCRIPT,
+                SAVE_CODE_IF_ALLOWED_SCRIPT,
                 List.of(LOGIN_CODE_PREFIX + target, LOGIN_CODE_SENT_PREFIX + target),
                 digest(code),
                 String.valueOf(securityProperties.getVerification().getResetCodeTtlSeconds()),
@@ -129,6 +129,85 @@ public class RedisVerificationCodeStore extends AbstractVerificationCodeStore {
     @Override
     public boolean loginCodeExists(String target) {
         return Boolean.TRUE.equals(stringRedisTemplate.hasKey(LOGIN_CODE_PREFIX + target));
+    }
+
+    @Override
+    public boolean trySaveRebindCode(String scope, String target, String code, int ttlSeconds, int resendIntervalSeconds) {
+        Long result = stringRedisTemplate.execute(
+                SAVE_CODE_IF_ALLOWED_SCRIPT,
+                List.of(rebindKey(scope, target), rebindSentKey(scope, target)),
+                digest(code),
+                String.valueOf(ttlSeconds),
+                String.valueOf(resendIntervalSeconds)
+        );
+        return Long.valueOf(1L).equals(result);
+    }
+
+    @Override
+    public void invalidateRebindCode(String scope, String target) {
+        stringRedisTemplate.delete(List.of(rebindKey(scope, target), rebindSentKey(scope, target)));
+    }
+
+    @Override
+    public VerificationResult verifyRebindCode(String scope, String target, String code) {
+        return executeCompareAndDeleteIfMatch(rebindKey(scope, target), digest(code));
+    }
+
+    @Override
+    public boolean rebindCodeExists(String scope, String target) {
+        return Boolean.TRUE.equals(stringRedisTemplate.hasKey(rebindKey(scope, target)));
+    }
+
+    @Override
+    public boolean trySaveMfaCode(String userId, String code, int ttlSeconds, int resendIntervalSeconds) {
+        Long result = stringRedisTemplate.execute(
+                SAVE_CODE_IF_ALLOWED_SCRIPT,
+                List.of(MFA_CODE_PREFIX + userId, MFA_CODE_SENT_PREFIX + userId),
+                digest(code),
+                String.valueOf(ttlSeconds),
+                String.valueOf(resendIntervalSeconds)
+        );
+        return Long.valueOf(1L).equals(result);
+    }
+
+    @Override
+    public void invalidateMfaCode(String userId) {
+        stringRedisTemplate.delete(List.of(MFA_CODE_PREFIX + userId, MFA_CODE_SENT_PREFIX + userId));
+    }
+
+    @Override
+    public VerificationResult verifyMfaCode(String userId, String code) {
+        return executeCompareAndDeleteIfMatch(MFA_CODE_PREFIX + userId, digest(code));
+    }
+
+    @Override
+    public boolean mfaCodeExists(String userId) {
+        return Boolean.TRUE.equals(stringRedisTemplate.hasKey(MFA_CODE_PREFIX + userId));
+    }
+
+    @Override
+    public void saveMfaChallenge(String challengeToken, String userId, int ttlSeconds) {
+        stringRedisTemplate.opsForValue().set(
+                MFA_CHALLENGE_PREFIX + challengeToken,
+                userId,
+                Duration.ofSeconds(ttlSeconds)
+        );
+    }
+
+    @Override
+    public String consumeMfaChallenge(String challengeToken) {
+        String key = MFA_CHALLENGE_PREFIX + challengeToken;
+        String userId = stringRedisTemplate.opsForValue().get(key);
+        if (userId == null) {
+            return null;
+        }
+        stringRedisTemplate.delete(key);
+        return userId;
+    }
+
+    @Override
+    public String peekMfaChallenge(String challengeToken) {
+        return stringRedisTemplate.opsForValue().get(MFA_CHALLENGE_PREFIX + challengeToken);
     }
 
     private VerificationResult executeConsumeAndCompare(String redisKey, String digestedCode) {

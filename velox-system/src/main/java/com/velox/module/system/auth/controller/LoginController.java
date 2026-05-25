@@ -6,6 +6,8 @@ import com.velox.module.system.auth.dto.CodeLoginCommand;
 import com.velox.module.system.auth.dto.ForgotPasswordCodeCommand;
 import com.velox.module.system.auth.dto.LoginCodeSendCommand;
 import com.velox.module.system.auth.dto.LoginCommand;
+import com.velox.module.system.auth.dto.MfaChallengeSendCodeCommand;
+import com.velox.module.system.auth.dto.MfaChallengeVerifyCommand;
 import com.velox.module.system.auth.dto.RegisterCommand;
 import com.velox.module.system.auth.dto.ResetPasswordCommand;
 import com.velox.module.system.auth.dto.TokenDTO;
@@ -77,5 +79,18 @@ public class LoginController {
     public Result<Void> logout() {
         loginService.logout();
         return Result.ok();
+    }
+
+    @Operation(summary = "发送登录二段验证码")
+    @PostMapping("/mfa/challenge/send-code")
+    public Result<Void> sendMfaChallengeCode(@Valid @RequestBody MfaChallengeSendCodeCommand command) {
+        loginService.sendMfaChallengeCode(command);
+        return Result.ok();
+    }
+
+    @Operation(summary = "校验登录二段验证码并完成登录")
+    @PostMapping("/mfa/challenge/verify")
+    public Result<TokenDTO> verifyMfaChallenge(@Valid @RequestBody MfaChallengeVerifyCommand command) {
+        return Result.ok(loginService.verifyMfaChallenge(command));
     }
 }

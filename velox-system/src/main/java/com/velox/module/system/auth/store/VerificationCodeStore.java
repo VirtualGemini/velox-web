@@ -27,6 +27,37 @@ public interface VerificationCodeStore {
 
     boolean loginCodeExists(String target);
 
+    /**
+     * 账号换绑验证码：scope 用来区分邮箱 / 手机号；target 为新邮箱或新手机号。
+     */
+    boolean trySaveRebindCode(String scope, String target, String code, int ttlSeconds, int resendIntervalSeconds);
+
+    void invalidateRebindCode(String scope, String target);
+
+    VerificationResult verifyRebindCode(String scope, String target, String code);
+
+    boolean rebindCodeExists(String scope, String target);
+
+    /**
+     * 用户启用 MFA 时一次性验证码（绑定到 userId）。
+     */
+    boolean trySaveMfaCode(String userId, String code, int ttlSeconds, int resendIntervalSeconds);
+
+    void invalidateMfaCode(String userId);
+
+    VerificationResult verifyMfaCode(String userId, String code);
+
+    boolean mfaCodeExists(String userId);
+
+    /**
+     * 登录第一段完成后下发的临时挑战令牌 -> userId；二段确认时一次性消费。
+     */
+    void saveMfaChallenge(String challengeToken, String userId, int ttlSeconds);
+
+    String consumeMfaChallenge(String challengeToken);
+
+    String peekMfaChallenge(String challengeToken);
+
     enum VerificationResult {
         MATCHED,
         INVALID,

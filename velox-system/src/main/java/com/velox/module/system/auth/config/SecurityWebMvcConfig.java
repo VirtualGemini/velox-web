@@ -44,6 +44,8 @@ public class SecurityWebMvcConfig implements WebMvcConfigurer {
         addAuthExclude(excludes, "/register");
         addAuthExclude(excludes, "/forgot-password/code");
         addAuthExclude(excludes, "/forgot-password/reset");
+        addAuthExclude(excludes, "/mfa/challenge/send-code");
+        addAuthExclude(excludes, "/mfa/challenge/verify");
         addPublicFileDownloadExclude(excludes);
 
         if (securityProperties.isSwaggerPublicEnabled()) {

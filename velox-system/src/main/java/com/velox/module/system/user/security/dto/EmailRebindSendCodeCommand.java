@@ -1,0 +1,21 @@
+package com.velox.module.system.user.security.dto;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
+public class EmailRebindSendCodeCommand {
+
+    @NotBlank
+    @Email
+    @Size(max = 100)
+    private String newEmail;
+
+    public String getNewEmail() {
+        return newEmail;
+    }
+
+    public void setNewEmail(String newEmail) {
+        this.newEmail = newEmail;
+    }
+}

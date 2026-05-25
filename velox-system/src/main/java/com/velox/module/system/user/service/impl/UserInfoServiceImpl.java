@@ -160,9 +160,34 @@ public class UserInfoServiceImpl implements UserInfoService {
         profile.setAddress(normalizeNullable(command.getAddress()));
         profile.setGender(normalizeGender(command.getGender()));
         profile.setIntroduction(normalizeNullable(command.getIntroduction()));
+        profile.setSignature(normalizeNullable(command.getSignature()));
+        profile.setPosition(normalizeNullable(command.getPosition()));
+        profile.setCompany(normalizeNullable(command.getCompany()));
+        profile.setTags(serializeTags(command.getTags()));
         profile.setUpdateBy(currentOperator());
         saveProfile(profile);
         return true;
+    }
+
+    private String serializeTags(List<String> tags) {
+        if (tags == null) {
+            return null;
+        }
+        List<String> normalized = tags.stream()
+                .filter(Objects::nonNull)
+                .map(String::trim)
+                .filter(s -> !s.isEmpty())
+                .distinct()
+                .limit(10)
+                .toList();
+        if (normalized.isEmpty()) {
+            return "[]";
+        }
+        try {
+            return objectMapper.writeValueAsString(normalized);
+        } catch (Exception ex) {
+            throw new ApiException(BusinessErrorCode.OPERATION_FAILED);
+        }
     }
 
     @Override
