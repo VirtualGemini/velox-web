@@ -126,7 +126,7 @@ export function fetchLogout() {
 }
 
 /**
- * 发送 MFA 二段验证邮件验证码
+ * 发送邮箱二次验证邮件验证码
  */
 export function fetchSendMfaChallengeCode(data: Api.Auth.MfaChallengeSendParams) {
   return request.post<void>({
@@ -136,7 +136,7 @@ export function fetchSendMfaChallengeCode(data: Api.Auth.MfaChallengeSendParams)
 }
 
 /**
- * 校验 MFA 二段验证并完成登录
+ * 校验虚拟 MFA 设备验证并完成登录
  */
 export function fetchVerifyMfaChallenge(data: Api.Auth.MfaChallengeVerifyParams) {
   return request.post<Api.Auth.LoginResponse>({

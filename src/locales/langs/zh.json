@@ -195,8 +195,8 @@
       "phoneTodo": "手机号登录暂未开通"
     },
     "mfaChallenge": {
-      "title": "二段验证",
-      "subTitle": "为保护账号安全，请输入邮箱二段验证码以完成登录",
+      "title": "虚拟 MFA 设备验证",
+      "subTitle": "为保护账号安全，请输入邮箱二次验证码以完成登录",
       "subTitleWithTarget": "验证码将发送至 {target}，请查收并输入以完成登录",
       "totpSubTitle": "请输入认证器 App 当前生成的 {digits} 位动态口令以完成登录",
       "totpPlaceholder": "请输入 {digits} 位动态口令",
@@ -283,7 +283,7 @@
       "title": "验证码登录"
     },
     "mfaChallenge": {
-      "title": "二段验证"
+      "title": "虚拟 MFA 设备验证"
     },
     "outside": {
       "title": "内嵌页面"

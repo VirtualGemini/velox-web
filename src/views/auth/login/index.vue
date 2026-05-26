@@ -107,8 +107,9 @@
   import { useI18n } from 'vue-i18n'
   import { HttpError } from '@/utils/http/error'
   import { fetchLogin } from '@/api/auth'
-  import { ElNotification, type FormInstance, type FormRules } from 'element-plus'
+  import type { FormInstance, FormRules } from 'element-plus'
   import { useSettingStore } from '@/store/modules/setting'
+  import { completeLogin } from '../shared/completeLogin'
 
   defineOptions({ name: 'Login' })
 
@@ -191,16 +192,15 @@
         throw new Error('Login failed - no token received')
       }
 
-      // 存储 token 和登录状态
-      userStore.setToken(token, refreshToken)
-      userStore.setLoginStatus(true)
-
-      // 登录成功处理
-      showLoginSuccessNotice()
-
-      // 获取 redirect 参数，如果存在则跳转到指定页面，否则跳转到首页
-      const redirect = route.query.redirect as string
-      router.push(redirect || '/')
+      await completeLogin({
+        userStore,
+        token,
+        refreshToken,
+        redirect: route.query.redirect as string | undefined,
+        router,
+        successTitle: t('login.success.title'),
+        successMessage: t('login.success.message')
+      })
     } catch (error) {
       // 处理 HttpError
       if (error instanceof HttpError) {
@@ -219,20 +219,6 @@
   // 重置拖拽验证
   const resetDragVerify = () => {
     dragVerify.value.reset()
-  }
-
-  // 登录成功提示
-  const showLoginSuccessNotice = () => {
-    setTimeout(() => {
-      const displayName = userStore.getUserInfo.userName || formData.username
-      ElNotification({
-        title: t('login.success.title'),
-        type: 'success',
-        duration: 2500,
-        zIndex: 10000,
-        message: `${t('login.success.message')}, ${displayName}!`
-      })
-    }, 1000)
   }
 </script>
 

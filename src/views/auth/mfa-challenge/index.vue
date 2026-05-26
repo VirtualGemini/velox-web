@@ -1,4 +1,4 @@
-<!-- 登录二段验证页：邮箱二段验证码 / TOTP 动态口令 -->
+<!-- 登录虚拟 MFA 设备验证页：邮箱二次验证码 / TOTP 动态口令 -->
 <template>
   <div class="flex w-full h-screen">
     <LoginLeftView />
@@ -68,10 +68,11 @@
 
 <script setup lang="ts">
   import { useI18n } from 'vue-i18n'
-  import { ElNotification, type FormInstance, type FormRules } from 'element-plus'
+  import type { FormInstance, FormRules } from 'element-plus'
   import { fetchSendMfaChallengeCode, fetchVerifyMfaChallenge } from '@/api/auth'
   import { useUserStore } from '@/store/modules/user'
   import { HttpError } from '@/utils/http/error'
+  import { completeLogin } from '../shared/completeLogin'
 
   defineOptions({ name: 'MfaChallenge' })
 
@@ -176,19 +177,15 @@
         throw new Error('MFA verification failed - no token received')
       }
 
-      userStore.setToken(token, refreshToken)
-      userStore.setLoginStatus(true)
-
-      ElNotification({
-        title: t('login.success.title'),
-        type: 'success',
-        duration: 2500,
-        zIndex: 10000,
-        message: t('login.success.message')
+      await completeLogin({
+        userStore,
+        token,
+        refreshToken,
+        redirect: route.query.redirect as string | undefined,
+        router,
+        successTitle: t('login.success.title'),
+        successMessage: t('login.success.message')
       })
-
-      const redirect = route.query.redirect as string
-      router.push(redirect || '/')
     } catch (error) {
       if (!(error instanceof HttpError)) {
         console.error('[MfaChallenge] verify failed:', error)

@@ -208,7 +208,7 @@
           />
         </div>
 
-        <!-- 邮箱二段 -->
+        <!-- 邮箱二次验证 -->
         <div class="flex items-center justify-between">
           <div>
             <div class="text-sm">

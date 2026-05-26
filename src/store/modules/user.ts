@@ -42,8 +42,9 @@ import { setPageTitle } from '@/utils/router'
 import { resetRouterState } from '@/router/guards/beforeEach'
 import { useMenuStore } from './menu'
 import { StorageConfig } from '@/utils/storage/storage-config'
-import { fetchLogout } from '@/api/auth'
+import { fetchGetUserInfo, fetchLogout } from '@/api/auth'
 import { clearSwrCache } from '@/hooks/core/useSwrCache'
+import i18n from '@/locales'
 
 /**
  * 用户状态管理
@@ -80,8 +81,8 @@ export const useUserStore = defineStore(
      * 设置用户信息
      * @param newInfo 新的用户信息
      */
-    const setUserInfo = (newInfo: Api.Auth.UserInfo) => {
-      info.value = newInfo
+    const setUserInfo = (newInfo: Partial<Api.Auth.UserInfo>) => {
+      info.value = { ...info.value, ...newInfo }
     }
 
     /**
@@ -138,6 +139,48 @@ export const useUserStore = defineStore(
     }
 
     /**
+     * 同步当前登录用户的正式用户信息
+     * 默认优先复用持久化数据，避免登录后重复请求造成界面闪烁
+     */
+    const hydrateUserInfo = async (options?: { force?: boolean }) => {
+      if (!options?.force && info.value.userId) {
+        return info.value as Api.Auth.UserInfo
+      }
+
+      const data = await fetchGetUserInfo()
+      setUserInfo(data)
+      checkAndClearWorktabs()
+
+      const remoteLang = data.language as LanguageEnum | undefined
+      if (
+        remoteLang &&
+        Object.values(LanguageEnum).includes(remoteLang) &&
+        remoteLang !== language.value
+      ) {
+        setLanguage(remoteLang)
+        const locale = i18n.global.locale
+        if (typeof locale === 'string') {
+          i18n.global.locale = remoteLang
+        } else {
+          locale.value = remoteLang
+        }
+      }
+
+      return data
+    }
+
+    /**
+     * 仅清理认证态，保留用户资料缓存用于静态展示与首帧消抖
+     */
+    const clearAuthState = () => {
+      isLogin.value = false
+      isLock.value = false
+      lockPassword.value = ''
+      accessToken.value = ''
+      refreshToken.value = ''
+    }
+
+    /**
      * 退出登录
      * 清空所有用户相关状态并跳转到登录页
      * 如果是同一账号重新登录，保留工作台标签页
@@ -159,18 +202,7 @@ export const useUserStore = defineStore(
         localStorage.setItem(StorageConfig.LAST_USER_ID_KEY, String(currentUserId))
       }
 
-      // 清空用户信息
-      info.value = {}
-      // 重置登录状态
-      isLogin.value = false
-      // 重置锁屏状态
-      isLock.value = false
-      // 清空锁屏密码
-      lockPassword.value = ''
-      // 清空访问令牌
-      accessToken.value = ''
-      // 清空刷新令牌
-      refreshToken.value = ''
+      clearAuthState()
       // 注意：不清空工作台标签页，等下次登录时根据用户判断
       // 移除iframe路由缓存
       sessionStorage.removeItem('iframeRoutes')
@@ -236,6 +268,8 @@ export const useUserStore = defineStore(
       setLockStatus,
       setLockPassword,
       setToken,
+      hydrateUserInfo,
+      clearAuthState,
       logOut,
       checkAndClearWorktabs
     }

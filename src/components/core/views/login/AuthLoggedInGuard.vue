@@ -33,7 +33,7 @@
   const userStore = useUserStore()
   const { getUserInfo: userInfo } = storeToRefs(userStore)
 
-  const showLoggedInCard = ref(userStore.isLogin && !!userStore.accessToken)
+  const showLoggedInCard = computed(() => userStore.isLogin && !!userStore.accessToken)
   const accountSelected = ref(false)
 
   const handleContinue = () => {
@@ -52,9 +52,24 @@
       customClass: 'login-out-dialog'
     })
       .then(() => {
-        showLoggedInCard.value = false
         userStore.logOut()
       })
       .catch(() => {})
   }
 </script>
+
+<style scoped>
+  @reference '@styles/core/tailwind.css';
+
+  .title {
+    @apply text-g-900 text-4xl font-semibold max-md:text-3xl max-sm:pt-10;
+  }
+
+  .sub-title {
+    @apply mt-[10px] text-g-600 text-sm;
+  }
+
+  .custom-height {
+    @apply !h-[40px];
+  }
+</style>
