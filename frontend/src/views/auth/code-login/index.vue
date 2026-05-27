@@ -75,6 +75,7 @@
   import gmailCleanerLightIcon from '@/assets/images/svg/gmail-cleaner-light.svg'
   import linuxdoIcon from '@/assets/images/svg/linuxdo.svg'
   import { useSettingStore } from '@/store/modules/setting'
+  import { grantAuthRouteAccess } from '../shared/routeAccess'
 
   defineOptions({ name: 'CodeLogin' })
 
@@ -87,6 +88,7 @@
   const githubIcon = computed(() => (isDark.value ? githubLightIcon : githubDarkIcon))
 
   const selectChannel = (next: Api.Auth.LoginCodeChannel) => {
+    grantAuthRouteAccess('CodeLoginVerify')
     router.push({
       name: 'CodeLoginVerify',
       query: { channel: next, ...(route.query.redirect ? { redirect: route.query.redirect } : {}) }

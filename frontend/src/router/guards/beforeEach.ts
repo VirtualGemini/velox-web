@@ -51,6 +51,7 @@ import { useWorktabStore } from '@/store/modules/worktab'
 import { ApiStatus } from '@/utils/http/status'
 import { isHttpError } from '@/utils/http/error'
 import { RouteRegistry, MenuProcessor, IframeRouteManager, RoutePermissionValidator } from '../core'
+import { consumeAuthRouteAccess } from '@/views/auth/shared/routeAccess'
 
 // 路由注册器实例
 let routeRegistry: RouteRegistry | null = null
@@ -150,6 +151,11 @@ async function handleRouteGuard(
     NProgress.start()
   }
 
+  // 受控认证步骤页只允许由登录流程内部跳转进入，禁止手动输入或刷新访问。
+  if (!handleAuthStepRouteAccess(to, next)) {
+    return
+  }
+
   // 1. 检查登录状态
   if (!handleLoginStatus(to, userStore, next)) {
     return
@@ -194,6 +200,41 @@ async function handleRouteGuard(
 
   // 6. 未匹配到路由，跳转到 404
   next({ name: 'Exception404' })
+}
+
+/**
+ * 处理受控认证步骤页访问
+ * @returns true 表示可以继续，false 表示已处理跳转
+ */
+function handleAuthStepRouteAccess(
+  to: RouteLocationNormalized,
+  next: NavigationGuardNext
+): boolean {
+  if (to.name === 'CodeLoginVerify') {
+    if (consumeAuthRouteAccess('CodeLoginVerify')) {
+      return true
+    }
+    next({
+      name: 'CodeLogin',
+      query: to.query.redirect ? { redirect: to.query.redirect } : {},
+      replace: true
+    })
+    return false
+  }
+
+  if (to.name === 'MfaChallenge') {
+    if (consumeAuthRouteAccess('MfaChallenge')) {
+      return true
+    }
+    next({
+      name: 'Login',
+      query: to.query.redirect ? { redirect: to.query.redirect } : {},
+      replace: true
+    })
+    return false
+  }
+
+  return true
 }
 
 /**

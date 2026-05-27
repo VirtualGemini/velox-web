@@ -110,6 +110,7 @@
   import type { FormInstance, FormRules } from 'element-plus'
   import { useSettingStore } from '@/store/modules/setting'
   import { completeLogin } from '../shared/completeLogin'
+  import { grantAuthRouteAccess } from '../shared/routeAccess'
 
   defineOptions({ name: 'Login' })
 
@@ -174,6 +175,7 @@
       const { token, refreshToken, mfaChallenge, mfaType, mfaEmailMasked, mfaTotpDigits } = response
 
       if (mfaChallenge) {
+        grantAuthRouteAccess('MfaChallenge')
         router.push({
           name: 'MfaChallenge',
           query: {

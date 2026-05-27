@@ -80,6 +80,7 @@
   import { useUserStore } from '@/store/modules/user'
   import { HttpError } from '@/utils/http/error'
   import { completeLogin } from '../shared/completeLogin'
+  import { grantAuthRouteAccess } from '../shared/routeAccess'
 
   defineOptions({ name: 'CodeLoginVerify' })
 
@@ -175,6 +176,7 @@
       const { token, refreshToken, mfaChallenge, mfaType, mfaEmailMasked, mfaTotpDigits } = response
 
       if (mfaChallenge) {
+        grantAuthRouteAccess('MfaChallenge')
         router.push({
           name: 'MfaChallenge',
           query: {
