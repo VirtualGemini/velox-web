@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>com.velox</groupId>
+        <artifactId>velox-infra</artifactId>
+        <version>1.0.0</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>velox-infra-persistence</artifactId>
+    <description>产品级 starter 接入层 Persistence 域 - 声明当前产品启用 persistence starter</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.velox</groupId>
+            <artifactId>velox-persistence-spring-boot-starter</artifactId>
+        </dependency>
+    </dependencies>
+</project>

@@ -1,0 +1,112 @@
+# 生产环境配置
+spring:
+  data:
+    redis:
+      # 生产环境 Redis 主机
+      host: ${REDIS_HOST:localhost}
+      # 生产环境 Redis 端口
+      port: ${REDIS_PORT:6379}
+      # 生产环境 Redis 密码
+      password: ${REDIS_PASSWORD:}
+      # 生产环境 Redis 库编号
+      database: ${REDIS_DATABASE:0}
+
+springdoc:
+  api-docs:
+    # 生产环境默认关闭 OpenAPI 文档
+    enabled: false
+  swagger-ui:
+    # 生产环境默认关闭 Swagger UI
+    enabled: false
+
+logging:
+  level:
+    # 根日志级别
+    root: WARN
+    # 业务包日志级别
+    com.velox: INFO
+  file:
+    # 生产环境日志输出目录
+    path: /var/log/velox
+
+velox:
+  datasource:
+    # 当前激活数据库类型，默认推荐 PostgreSQL；可选 mysql / postgresql
+    type: ${DB_TYPE:postgresql}
+    # 并存的多套数据库连接配置
+    configs:
+      mysql:
+        # MySQL 生产连接
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: ${MYSQL_DB_URL:jdbc:mysql://localhost:3306/velox_prod?useUnicode=true&characterEncoding=utf-8&useSSL=true&serverTimezone=GMT}
+        username: ${MYSQL_DB_USERNAME:${DB_USERNAME:root}}
+        password: ${MYSQL_DB_PASSWORD:${DB_PASSWORD:root}}
+      postgresql:
+        # PostgreSQL 18.x 生产连接
+        driver-class-name: org.postgresql.Driver
+        url: ${POSTGRESQL_DB_URL:jdbc:postgresql://localhost:5432/velox_prod}
+        username: ${POSTGRESQL_DB_USERNAME:${DB_USERNAME:postgres}}
+        password: ${POSTGRESQL_DB_PASSWORD:${DB_PASSWORD:postgres}}
+  web:
+    cors:
+      # 生产环境允许的前端来源，建议通过环境变量精确指定
+      allowed-origin-patterns: ${CORS_ALLOWED_ORIGINS:https://example.com}
+  security:
+    # 生产环境默认不公开 Swagger
+    swagger-public-enabled: false
+  system:
+    auth:
+      # 验证码 HMAC 摘要密钥，生产环境必须通过安全环境变量注入
+      verification:
+        secret: ${VERIFICATION_SECRET}
+        # 邮件重置验证码有效期（秒）
+        reset-code-ttl-seconds: 600
+        # 邮件重置验证码重复发送间隔（秒）
+        reset-code-resend-interval-seconds: 60
+  redis:
+    # 生产环境显式开启 Redis；如关闭则验证码和在线状态退化为单实例内存实现
+    enabled: true
+    cache:
+      # 生产环境默认关闭 Spring Cache 层；确认存在真实缓存收益后再单独开启
+      enabled: false
+      # 若仍有业务误用缓存注解，默认快速失败，避免产生伪缓存成功
+      disabled-strategy: FAIL_FAST
+  id:
+    snowflake:
+      # true 使用 Snowflake BIGINT；false 使用数据库序列 BIGINT
+      enabled: true
+      # 生产环境默认对前端启用 Base62 编解码，避免直接暴露原始雪花值
+      base62: true
+    database:
+      # 生产环境默认不迁移：只跑校验并以警告/诊断报告形式输出差异，避免因数据库 ID 变更引发不可预估的风险；
+      # 如确需迁移，务必先在测试环境验证迁移过程与结果，再覆盖为 update 启动
+      init-mode: none
+    # 生产环境节点编号必须按实例唯一规划；未覆盖时回退默认值仅用于保底
+    worker-id: ${VELOX_ID_WORKER_ID:1}
+    # 生产环境机房编号必须与部署拓扑一致，避免跨集群冲突
+    datacenter-id: ${VELOX_ID_DATACENTER_ID:1}
+  file:
+    # 是否启用文件能力；生产环境显式开启，避免依赖默认值
+    enabled: true
+  email:
+    # false 时注入 disabled/noop 实现；true 时启用真实 SMTP 发送
+    enabled: ${MAIL_ENABLED:false}
+    username: ${MAIL_USERNAME:${MAIL_SENDER:}}
+    password: ${MAIL_PASSWORD:}
+    from: ${MAIL_FROM:${MAIL_SENDER:}}
+    from-name: Velox
+    ssl: ${MAIL_SSL:true}
+    async:
+      enabled: true
+      virtual-threads: true
+      concurrency-limit: ${MAIL_CONCURRENCY_LIMIT:512}
+      thread-name-prefix: velox-email-
+    retry:
+      default-attempts: 1
+      max-attempts: 3
+      initial-delay: 1s
+      multiplier: 2.0
+      max-delay: 30s
+    logging:
+      enabled: true
+      level: INFO

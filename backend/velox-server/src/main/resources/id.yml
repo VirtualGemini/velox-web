@@ -1,0 +1,164 @@
+velox:
+  id:
+    database:
+      governance:
+        # 是否输出数据库 ID 规划报告与诊断摘要
+        report-enabled: true
+        # 显式忽略的表：未在 domains/references 声明的表会在 init-mode=update 且需要迁移时触发启动失败；
+        # 如果某张表确实不想纳入治理（如第三方表、临时表），把表名写在这里跳过检查
+        ignored-tables: [sys_id_sequence]
+        # 声明式身份域：只有这里注册的主键域才参与数据库 ID 治理
+        domains:
+          - table: sys_user
+            id-column: id
+            business-type: sys_user
+          - table: sys_role
+            id-column: id
+            business-type: sys_role
+          - table: sys_menu
+            id-column: id
+            business-type: sys_menu
+          - table: sys_profile
+            id-column: id
+            business-type: sys_profile
+          - table: sys_user_role
+            id-column: id
+            business-type: sys_user_role
+          - table: sys_user_session
+            id-column: id
+            business-type: sys_user_session
+          - table: sys_role_menu_permission
+            id-column: id
+            business-type: sys_role_menu_permission
+          - table: sys_file_config
+            id-column: id
+            business-type: sys_file_config
+          - table: sys_file
+            id-column: id
+            business-type: sys_file
+          - table: sys_file_content
+            id-column: id
+            business-type: sys_file_content
+          - table: sys_user_security
+            id-column: id
+            business-type: sys_user_security
+        # 声明式引用图：只有这里注册的引用列才会跟随身份域一起迁移
+        references:
+          - table: sys_user
+            mappings:
+              - column: create_by
+                target-business-type: sys_user
+                kind: audit
+              - column: update_by
+                target-business-type: sys_user
+                kind: audit
+          - table: sys_role
+            mappings:
+              - column: create_by
+                target-business-type: sys_user
+                kind: audit
+              - column: update_by
+                target-business-type: sys_user
+                kind: audit
+          - table: sys_menu
+            mappings:
+              - column: parent_id
+                target-business-type: sys_menu
+                kind: self
+              - column: create_by
+                target-business-type: sys_user
+                kind: audit
+              - column: update_by
+                target-business-type: sys_user
+                kind: audit
+          - table: sys_profile
+            mappings:
+              - column: user_id
+                target-business-type: sys_user
+                kind: fk
+              - column: create_by
+                target-business-type: sys_user
+                kind: audit
+              - column: update_by
+                target-business-type: sys_user
+                kind: audit
+          - table: sys_user_role
+            mappings:
+              - column: user_id
+                target-business-type: sys_user
+                kind: fk
+              - column: role_id
+                target-business-type: sys_role
+                kind: fk
+              - column: create_by
+                target-business-type: sys_user
+                kind: audit
+              - column: update_by
+                target-business-type: sys_user
+                kind: audit
+          - table: sys_user_session
+            mappings:
+              - column: user_id
+                target-business-type: sys_user
+                kind: fk
+              - column: create_by
+                target-business-type: sys_user
+                kind: audit
+              - column: update_by
+                target-business-type: sys_user
+                kind: audit
+          - table: sys_role_menu_permission
+            mappings:
+              - column: role_id
+                target-business-type: sys_role
+                kind: fk
+              - column: menu_id
+                target-business-type: sys_menu
+                kind: fk
+              - column: create_by
+                target-business-type: sys_user
+                kind: audit
+              - column: update_by
+                target-business-type: sys_user
+                kind: audit
+          - table: sys_file_config
+            mappings:
+              - column: create_by
+                target-business-type: sys_user
+                kind: audit
+              - column: update_by
+                target-business-type: sys_user
+                kind: audit
+          - table: sys_file
+            mappings:
+              - column: config_id
+                target-business-type: sys_file_config
+                kind: explicit
+              - column: create_by
+                target-business-type: sys_user
+                kind: audit
+              - column: update_by
+                target-business-type: sys_user
+                kind: audit
+          - table: sys_file_content
+            mappings:
+              - column: config_id
+                target-business-type: sys_file_config
+                kind: explicit
+              - column: create_by
+                target-business-type: sys_user
+                kind: audit
+              - column: update_by
+                target-business-type: sys_user
+                kind: audit
+          - table: sys_user_security
+            mappings:
+              - column: user_id
+                target-business-type: sys_user
+                kind: fk
+              - column: create_by
+                target-business-type: sys_user
+                kind: audit
+              - column: update_by
+                target-business-type: sys_user
+                kind: audit

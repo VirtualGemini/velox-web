@@ -1,0 +1,118 @@
+# 开发环境配置
+spring:
+  data:
+    redis:
+      # 本地 Redis 主机
+      host: localhost
+      # 本地 Redis 端口
+      port: 6379
+      # 本地 Redis 密码；空表示无密码
+      password: 
+      # Redis 库编号
+      database: 0
+
+springdoc:
+  api-docs:
+    # 本地环境默认关闭 OpenAPI 文档
+    enabled: false
+  swagger-ui:
+    # 本地环境默认关闭 Swagger UI
+    enabled: false
+
+logging:
+  level:
+    # 本地环境业务日志级别
+    com.velox: INFO
+  file:
+    # 本地日志输出目录
+    path: ./log
+
+velox:
+  datasource:
+    # 当前激活数据库类型，默认推荐 PostgreSQL；可选 mysql / postgresql
+    type: ${DB_TYPE:postgresql}
+    # 并存的多套数据库连接配置
+    configs:
+      mysql:
+        # MySQL 连接
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: ${MYSQL_DB_URL:jdbc:mysql://localhost:3306/velox?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=GMT&allowPublicKeyRetrieval=true}
+        username: ${MYSQL_DB_USERNAME:root}
+        password: ${MYSQL_DB_PASSWORD:root}
+      postgresql:
+        # PostgreSQL 18.x 连接
+        driver-class-name: org.postgresql.Driver
+        url: ${POSTGRESQL_DB_URL:jdbc:postgresql://localhost:5432/velox}
+        username: ${POSTGRESQL_DB_USERNAME:postgres}
+        password: ${POSTGRESQL_DB_PASSWORD:postgres}
+  security:
+    # 本地环境默认不公开 Swagger
+    swagger-public-enabled: false
+    cors:
+      # 本地前端联调允许的来源
+      allowed-origin-patterns:
+        - ${CORS_ALLOWED_ORIGINS:http://localhost:*}
+        - "http://127.0.0.1:*"
+        - "http://192.168.*:*"
+        - "http://10.*:*"
+        - "http://172.16.*:*"
+        - "http://172.17.*:*"
+        - "http://172.18.*:*"
+        - "http://172.19.*:*"
+        - "http://172.20.*:*"
+        - "http://172.21.*:*"
+        - "http://172.22.*:*"
+        - "http://172.23.*:*"
+        - "http://172.24.*:*"
+        - "http://172.25.*:*"
+        - "http://172.26.*:*"
+        - "http://172.27.*:*"
+        - "http://172.28.*:*"
+        - "http://172.29.*:*"
+        - "http://172.30.*:*"
+        - "http://172.31.*:*"
+    verification:
+      # 验证码 HMAC 摘要密钥；本地可使用默认值，生产环境必须覆盖
+      secret: ${VERIFICATION_SECRET:velox-local-verification-secret}
+      # 邮件重置验证码有效期（秒）
+      reset-code-ttl-seconds: 600
+      # 邮件重置验证码重复发送间隔（秒）
+      reset-code-resend-interval-seconds: 60
+  email:
+    # 生产环境通过环境变量控制启停
+    enabled: false
+    # SMTP 用户名，通常与发件邮箱相同
+    username: ${MAIL_USERNAME:no-reply-cp@qq.com}
+    # 发件邮箱授权码或 SMTP 密码
+    password: ${MAIL_PASSWORD:aqsqxbwebdhldegd}
+    # 默认发件人地址
+    from: ${MAIL_FROM:no-reply-cp@qq.com}
+    # 默认发件人名称
+    from-name: Velox
+    # 是否启用 SSL；未显式配置 host/port 时会按邮箱域名自动推断
+    ssl: true
+    async:
+      # 是否开启异步发送
+      enabled: true
+      # JDK 25 下默认使用虚拟线程提升并发能力
+      virtual-threads: true
+      # 最大并发发送任务数
+      concurrency-limit: ${MAIL_CONCURRENCY_LIMIT:512}
+      # 异步线程名前缀，便于排查日志
+      thread-name-prefix: velox-email-
+    retry:
+      # 默认发送尝试次数；业务未显式指定时生效
+      default-attempts: 1
+      # 全局允许的最大尝试次数上限
+      max-attempts: 3
+      # 首次重试延迟
+      initial-delay: 1s
+      # 指数退避倍数
+      multiplier: 2.0
+      # 最大退避延迟
+      max-delay: 30s
+    logging:
+      # 是否输出邮件模块日志
+      enabled: true
+      # 日志级别：ERROR/WARN/INFO/DEBUG
+      level: INFO

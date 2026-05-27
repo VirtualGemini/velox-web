@@ -1,0 +1,39 @@
+# Maven
+target/
+dependency-reduced-pom.xml
+release.properties
+surefire-reports/
+failsafe-reports/
+
+# Java
+*.class
+*.jar
+*.war
+*.ear
+hs_err_pid*
+replay_pid*
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# Tests
+**/src/test/
+test-output/
+
+# IDEs
+.idea/
+*.iml
+.project
+.classpath
+.settings/
+.factorypath
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local tooling
+.sixth/

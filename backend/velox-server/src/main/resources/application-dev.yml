@@ -1,0 +1,134 @@
+# 开发环境配置
+spring:
+  data:
+    redis:
+      # 开发环境 Redis 主机
+      host: localhost
+      # 开发环境 Redis 端口
+      port: 6379
+      # 开发环境 Redis 密码；空表示无密码
+      password: 
+      # 开发环境 Redis 库编号
+      database: 0
+
+springdoc:
+  api-docs:
+    # 开发环境默认开启 OpenAPI 文档
+    enabled: true
+  swagger-ui:
+    # 开发环境默认开启 Swagger UI，便于接口调试
+    enabled: true
+
+logging:
+  level:
+    # 开发环境业务日志级别
+    com.velox: DEBUG
+  file:
+    # 开发环境日志目录
+    path: ./log
+
+velox:
+  datasource:
+    # 当前激活数据库类型，默认推荐 PostgreSQL；可选 mysql / postgresql
+    type: ${DB_TYPE:postgresql}
+    # 并存的多套数据库连接配置
+    configs:
+      mysql:
+        # MySQL 连接
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: ${MYSQL_DB_URL:jdbc:mysql://localhost:3306/velox?useUnicode=true&characterEncoding=utf-8&useSSL=false&serverTimezone=GMT&allowPublicKeyRetrieval=true}
+        username: ${MYSQL_DB_USERNAME:root}
+        password: ${MYSQL_DB_PASSWORD:root}
+      postgresql:
+        # PostgreSQL 18.x 连接
+        driver-class-name: org.postgresql.Driver
+        url: ${POSTGRESQL_DB_URL:jdbc:postgresql://localhost:5432/velox}
+        username: ${POSTGRESQL_DB_USERNAME:postgres}
+        password: ${POSTGRESQL_DB_PASSWORD:postgres}
+  web:
+    cors:
+      # 开发环境前后端联调允许的来源
+      allowed-origin-patterns:
+        - ${CORS_ALLOWED_ORIGINS:http://localhost:*}
+        - "http://127.0.0.1:*"
+        - "http://192.168.*:*"
+        - "http://10.*:*"
+        - "http://172.16.*:*"
+        - "http://172.17.*:*"
+        - "http://172.18.*:*"
+        - "http://172.19.*:*"
+        - "http://172.20.*:*"
+        - "http://172.21.*:*"
+        - "http://172.22.*:*"
+        - "http://172.23.*:*"
+        - "http://172.24.*:*"
+        - "http://172.25.*:*"
+        - "http://172.26.*:*"
+        - "http://172.27.*:*"
+        - "http://172.28.*:*"
+        - "http://172.29.*:*"
+        - "http://172.30.*:*"
+        - "http://172.31.*:*"
+  security:
+    # 开发环境允许未登录访问 Swagger UI 与 OpenAPI 文档
+    swagger-public-enabled: true
+  system:
+    auth:
+      # 验证码 HMAC 摘要密钥；开发环境可使用默认值，生产环境必须覆盖
+      verification:
+        secret: ${VERIFICATION_SECRET:velox-dev-verification-secret}
+        # 邮件重置验证码有效期（秒）
+        reset-code-ttl-seconds: 600
+        # 邮件重置验证码重复发送间隔（秒）
+        reset-code-resend-interval-seconds: 60
+  redis:
+    # 开发环境默认开启 Redis；关闭后验证码和在线状态改为内存实现
+    enabled: true
+    cache:
+      # 开发环境默认关闭 Spring Cache 层，避免调试时引入额外缓存副作用
+      enabled: false
+      # 若业务误用缓存能力，默认快速失败便于尽早暴露问题
+      disabled-strategy: FAIL_FAST
+  id:
+    snowflake:
+      # true 使用 Snowflake BIGINT；false 使用数据库序列 BIGINT
+      enabled: true
+      # 开发环境默认直传原始雪花 ID，便于排查；需要前后端 Base62 交互时改为 true
+      base62: false
+    database:
+      # 开发环境允许启动时热更新数据库 ID 对象，便于反复验证雪花/数据库序列切换
+      init-mode: update
+    # 开发环境节点编号建议由部署平台注入，默认回退到单节点
+    worker-id: ${VELOX_ID_WORKER_ID:1}
+    # 开发环境机房编号建议与集群规划保持一致
+    datacenter-id: ${VELOX_ID_DATACENTER_ID:1}
+  file:
+    # 是否启用文件能力；开发环境显式开启，避免依赖默认值
+    enabled: true
+  email:
+    # 是否启用邮件模块；false 时注入 disabled/noop 实现，true 时启用真实发送能力
+    enabled: ${MAIL_ENABLED:false}
+    # SMTP 用户名，通常与发件邮箱相同
+    username: ${MAIL_USERNAME:${MAIL_SENDER:}}
+    # 发件邮箱授权码或 SMTP 密码
+    password: ${MAIL_PASSWORD:}
+    # 默认发件人地址
+    from: ${MAIL_FROM:${MAIL_SENDER:}}
+    # 默认发件人名称
+    from-name: Velox
+    # 是否启用 SSL；未显式配置 host/port 时会按邮箱域名自动推断
+    ssl: ${MAIL_SSL:true}
+    async:
+      enabled: true
+      virtual-threads: true
+      concurrency-limit: 256
+      thread-name-prefix: velox-email-
+    retry:
+      default-attempts: 1
+      max-attempts: 3
+      initial-delay: 1s
+      multiplier: 2.0
+      max-delay: 30s
+    logging:
+      enabled: true
+      level: INFO

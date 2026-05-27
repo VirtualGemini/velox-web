@@ -1,0 +1,47 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: velox-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    volumes:
+      # The default language is Chinese.
+      - ../sql/mysql/init-zh-CN.sql:/docker-entrypoint-initdb.d/init.sql
+      # You can switch to English by mounting the corresponding SQL file. ⬇
+      # - ../sql/mysql/init-en.sql:/docker-entrypoint-initdb.d/init.sql ⬅
+      - mysql-data:/var/lib/mysql
+
+  postgresql:
+    image: postgres:18.4
+    container_name: velox-postgresql
+    restart: always
+    environment:
+      POSTGRES_DB: velox
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      # The default language is Chinese. 
+      - ../sql/postgresql/init-zh-CN.sql:/docker-entrypoint-initdb.d/init.sql
+      # You can switch to English by mounting the corresponding SQL file. ⬇
+      # - ../sql/postgresql/init-en.sql:/docker-entrypoint-initdb.d/init.sql ⬅
+      # postgres 18+ requires mounting the parent directory instead of PGDATA itself.
+      - postgresql-data:/var/lib/postgresql
+
+  redis:
+    image: redis:7-alpine
+    container_name: velox-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+volumes:
+  mysql-data:
+  postgresql-data:
+  redis-data:

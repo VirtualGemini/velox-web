@@ -1,0 +1,278 @@
+# 服务端口与 Servlet 容器基础配置
+server:
+  # 应用监听端口
+  port: 8080
+  servlet:
+    # 应用上下文路径，保持根路径便于前后端联调
+    context-path: /
+  tomcat:
+    # URI 编码，避免中文参数乱码
+    uri-encoding: UTF-8
+    threads:
+      # Tomcat 最大工作线程数
+      max: 800
+      # Tomcat 最小空闲线程数
+      min-spare: 100
+
+# Spring Boot 通用配置
+spring:
+  config:
+    # 额外导入数据库 ID 治理声明，避免主配置文件过长
+    import: classpath:id.yml
+  profiles:
+    # 当前默认激活环境
+    active: local
+  application:
+    # 应用名称
+    name: velox
+  messages:
+    # 国际化消息资源路径
+    basename: i18n/messages
+    # 国际化资源编码
+    encoding: UTF-8
+    # 找不到消息时直接返回 key，便于排查
+    use-code-as-default-message: true
+  jackson:
+    # 全局日期时间输出格式
+    date-format: yyyy-MM-dd HH:mm:ss
+    # 默认时区
+    time-zone: GMT+8
+    # null 字段不输出
+    default-property-inclusion: non_null
+    serialization:
+      # 禁止将时间序列化为时间戳
+      write-dates-as-timestamps: false
+      # 允许序列化空 Bean
+      fail-on-empty-beans: false
+    deserialization:
+      # 反序列化时忽略未知字段
+      fail-on-unknown-properties: false
+
+# MyBatis Plus 配置
+mybatis-plus:
+  # Mapper XML 扫描路径
+  mapper-locations: classpath*:mapper/**/*.xml
+  global-config:
+    db-config:
+      # 主键策略：业务侧显式传入
+      id-type: input
+      # 逻辑删除字段名
+      logic-delete-field: deleted
+      # 逻辑删除值
+      logic-delete-value: 1
+      # 逻辑未删除值
+      logic-not-delete-value: 0
+  configuration:
+    # 下划线字段自动映射为驼峰属性
+    map-underscore-to-camel-case: true
+    # 使用 slf4j 输出 SQL 日志
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+
+# SpringDoc OpenAPI 配置
+springdoc:
+  cache:
+    # OpenAPI 文案按请求 Locale 解析；关闭缓存避免首次生成的语言被后续切换复用
+    disabled: true
+  api-docs:
+    # 是否启用 OpenAPI JSON 文档
+    enabled: true
+    # OpenAPI 文档访问路径
+    path: /v3/api-docs
+    # 允许 @Schema 注解属性按 MessageSource 解析
+    resolve-schema-properties: true
+  swagger-ui:
+    # 是否启用 Swagger UI
+    enabled: true
+    # Swagger UI 访问路径
+    path: /swagger-ui.html
+    # 隐藏默认 Petstore 地址
+    disable-swagger-default-url: true
+    # 默认选中的文档语言
+    urls-primary-name: zh-CN
+    urls:
+      - name: zh-CN
+        url: /v3/api-docs?lang=zh
+      - name: en
+        url: /v3/api-docs?lang=en
+
+# 应用自定义配置
+velox:
+  # 系统名称
+  name: velox
+  # 系统版本
+  version: 1.0.0
+  # 所有 REST 接口统一前缀
+  api-prefix: /api
+  web:
+    cors:
+      # 允许跨域访问的来源模式
+      allowed-origin-patterns:
+        - "http://localhost:*"
+        - "http://127.0.0.1:*"
+      # 允许的跨域请求方法
+      allowed-methods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+        - PATCH
+        - OPTIONS
+      # 允许携带的请求头
+      allowed-headers:
+        - "*"
+      # 暴露给浏览器的响应头
+      exposed-headers:
+        - Authorization
+        - X-Trace-Id
+      # 是否允许跨域携带 Cookie / 认证头
+      allow-credentials: true
+      # 跨域预检缓存时间（秒）
+      max-age: 3600
+  security:
+    # 是否允许未登录公开访问 Swagger
+    swagger-public-enabled: false
+    password:
+      # 可配置算法: bcrypt(默认) / pbkdf2_sha512 / md5(仅兼容历史数据，不推荐)
+      algorithm: bcrypt
+      # 登录成功后是否自动升级旧密码哈希
+      upgrade-on-login: true
+      # bcrypt 成本因子，范围建议 10~14
+      bcrypt-strength: 12
+      # PBKDF2-SHA512 迭代次数，建议 >= 210000
+      pbkdf2-iterations: 210000
+      # PBKDF2 输出长度（bit），建议 256
+      pbkdf2-key-length: 256
+      # PBKDF2 盐值长度（byte），建议 >= 16
+      pbkdf2-salt-length: 16
+    token:
+      # token provider 模式：stateful / jwt
+      mode: stateful
+      # Token 名称
+      token-name: Authorization
+      # Token 有效期（秒）
+      timeout: 86400
+      # 是否允许同账号并发登录
+      concurrent: true
+      # 是否共享同一 Token；false 表示每次登录单独发放
+      share: false
+      # stateful provider 下的 token 生成风格
+      style: uuid
+      # 是否输出底层认证日志
+      log-enabled: false
+      # 是否从请求头中读取 Token
+      read-header: true
+      # 是否从 Cookie 中读取 Token
+      read-cookie: false
+      jwt:
+        # jwt 运行策略：simple / mixin / stateless
+        strategy: mixin
+        # 建议通过环境变量覆盖
+        secret: ${VELOX_SECURITY_JWT_SECRET:change-this-jwt-secret}
+        # jwt 模式下是否回写响应头
+        write-header: true
+  system:
+    auth:
+      interceptor:
+        auth-exclude-suffixes:
+          - /login
+          - /login-code/send
+          - /login-code/login
+          - /captcha
+          - /register
+          - /forgot-password/code
+          - /forgot-password/reset
+          - /mfa/challenge/send-code
+          - /mfa/challenge/verify
+        public-exclude-patterns:
+          - /file/*/get/**
+        swagger-public-exclude-patterns:
+          - /swagger-ui/**
+          - /swagger-ui.html
+          - /v3/api-docs
+          - /v3/api-docs/**
+          - /doc.html
+          - /webjars/**
+      login:
+        # 最大登录失败次数，超过后进入锁定
+        max-fail-count: 5
+        # 登录失败锁定时长（分钟）
+        lock-minutes: 30
+        presence:
+          # 是否在每次已登录请求时刷新在线心跳
+          request-heartbeat-enabled: true
+          # 是否在登录成功时写入在线状态
+          login-signal-enabled: true
+          # 是否在退出登录时写入离线状态
+          logout-signal-enabled: true
+          # 登录态但长时间无请求时的离线判定秒数
+          idle-offline-seconds: 6000
+          # 显式退出登录后的离线判定秒数；设置为 0 表示立即离线
+          logout-offline-seconds: 120
+      captcha:
+        # 图形验证码有效期（秒）
+        ttl-seconds: 120
+        # 验证码缓存的最大条数
+        max-cache-size: 10000
+      verification:
+        # 验证码 HMAC 摘要密钥，建议通过环境变量覆盖
+        secret: ${VERIFICATION_SECRET:change-this-verification-secret}
+        # 邮件重置验证码有效期（秒）
+        reset-code-ttl-seconds: 600
+        # 邮件重置验证码重复发送间隔（秒）
+        reset-code-resend-interval-seconds: 60
+    account-security:
+      login-methods:
+        # 全局允许的登录方式集合（用户层选择只能取该集合的子集）
+        enabled:
+          - password
+          - email_code
+        # 注册时初始化到 sys_user_security.login_methods 的默认值
+        defaults:
+          - password
+        # 是否禁止用户关闭密码登录
+        password-required: true
+      mfa:
+        email:
+          # 是否启用邮箱二次验证能力
+          enabled: true
+          # 邮箱二次验证码有效期（秒）
+          ttl-seconds: 300
+          # 重新发送间隔（秒）
+          resend-interval-seconds: 60
+          # 一段通过后下发的 challenge 令牌有效期（秒）
+          challenge-ttl-seconds: 300
+        totp:
+          # 是否允许业务层暴露 TOTP MFA 管理入口
+          enabled: false
+      rebind:
+        email:
+          # 邮箱换绑验证码有效期（秒）
+          code-ttl-seconds: 600
+          # 邮箱换绑验证码重发间隔（秒）
+          resend-interval-seconds: 60
+  # TOTP 动态口令能力（velox-totp-spring-boot-starter）
+  totp:
+    # 是否启用 TOTP 能力；false 时由 DisabledTotpService 兜底，所有绑定与校验接口将拒绝
+    enabled: true
+    # 二维码 / otpauth URI 中显示的发行方名称，建议使用产品名或租户名
+    issuer: ${velox.name:Velox}
+    # 口令位数（6/7/8 兼容主流认证器，常见值为 6）
+    digits: 6
+    # 时间步长（秒），RFC 6238 推荐 30
+    period-seconds: 30
+    # HMAC 算法（SHA1 兼容 Google / Microsoft / 腾讯 等仅支持 SHA1 的客户端）
+    algorithm: SHA1
+    # 生成新 secret 时的字节长度，SHA1 推荐 ≥ 20
+    secret-size-bytes: 20
+    # 校验时允许的相邻时间步数（1 表示当前窗口 ±1 步 / ±30 秒，补偿设备时钟漂移）
+    verify-window-steps: 1
+
+# 日志配置
+logging:
+  level:
+    # 根日志级别
+    root: INFO
+    # 业务包日志级别
+    com.velox: DEBUG
+  # Logback 主配置文件路径
+  config: classpath:logback-spring.xml
