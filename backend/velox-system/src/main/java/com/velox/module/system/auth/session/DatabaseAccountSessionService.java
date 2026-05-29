@@ -4,6 +4,7 @@ import cn.hutool.crypto.digest.DigestUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.velox.module.system.auth.properties.SystemAuthProperties;
 import com.velox.module.system.domain.model.AccountSession;
+import com.velox.module.system.id.generator.SystemEntityIdGenerator;
 import com.velox.module.system.persistence.AccountSessionMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -26,11 +27,14 @@ public class DatabaseAccountSessionService implements AccountSessionService {
 
     private final AccountSessionMapper accountSessionMapper;
     private final SystemAuthProperties.Login.Presence presenceProperties;
+    private final SystemEntityIdGenerator entityIdGenerator;
 
     public DatabaseAccountSessionService(AccountSessionMapper accountSessionMapper,
-                                         SystemAuthProperties authProperties) {
+                                         SystemAuthProperties authProperties,
+                                         SystemEntityIdGenerator entityIdGenerator) {
         this.accountSessionMapper = accountSessionMapper;
         this.presenceProperties = authProperties.getLogin().getPresence();
+        this.entityIdGenerator = entityIdGenerator;
     }
 
     @Override
@@ -39,19 +43,7 @@ public class DatabaseAccountSessionService implements AccountSessionService {
             return;
         }
         LocalDateTime now = nowUtc();
-        AccountSession session = new AccountSession();
-        session.setId(sessionId);
-        session.setAccountId(accountId);
-        session.setTokenHash(hashToken(tokenValue));
-        session.setStatus(SESSION_STATUS_ACTIVE);
-        session.setLoginTime(now);
-        session.setLastActiveTime(now);
-        session.setLogoutTime(null);
-        session.setPresenceExpireTime(resolveLoginPresenceExpiry(now));
-        session.setCreateBy(accountId);
-        session.setUpdateBy(accountId);
-        session.setDeleted(NOT_DELETED);
-        accountSessionMapper.insert(session);
+        accountSessionMapper.insert(buildActiveSession(accountId, sessionId, tokenValue, now, resolveLoginPresenceExpiry(now)));
     }
 
     @Override
@@ -61,12 +53,15 @@ public class DatabaseAccountSessionService implements AccountSessionService {
         }
         AccountSession session = findByTokenHash(hashToken(tokenValue));
         if (session == null) {
+            // 会话记录缺失（例如数据库被重置）但 token 仍有效：以当前请求重建在线会话，
+            // 否则在线状态会一直停留在离线，直到用户重新登录。
+            restoreSession(accountId, tokenValue);
             return;
         }
         LocalDateTime now = nowUtc();
         session.setLastActiveTime(now);
         if (presenceProperties.isRequestHeartbeatEnabled()) {
-            session.setPresenceExpireTime(now.plusSeconds(Math.max(1, presenceProperties.getIdleOfflineSeconds())));
+            session.setPresenceExpireTime(resolveActivityPresenceExpiry(now));
         }
         session.setUpdateBy(accountId);
         session.setUpdateTime(now);
@@ -170,6 +165,36 @@ public class DatabaseAccountSessionService implements AccountSessionService {
                 .eq(AccountSession::getDeleted, NOT_DELETED)
                 .eq(AccountSession::getTokenHash, tokenHash)
                 .last("limit 1"));
+    }
+
+    private void restoreSession(String accountId, String tokenValue) {
+        LocalDateTime now = nowUtc();
+        LocalDateTime presenceExpire = presenceProperties.isRequestHeartbeatEnabled()
+                ? resolveActivityPresenceExpiry(now)
+                : resolveLoginPresenceExpiry(now);
+        String sessionId = entityIdGenerator.nextId(AccountSession.class);
+        accountSessionMapper.insert(buildActiveSession(accountId, sessionId, tokenValue, now, presenceExpire));
+    }
+
+    private AccountSession buildActiveSession(String accountId, String sessionId, String tokenValue,
+                                              LocalDateTime now, LocalDateTime presenceExpire) {
+        AccountSession session = new AccountSession();
+        session.setId(sessionId);
+        session.setAccountId(accountId);
+        session.setTokenHash(hashToken(tokenValue));
+        session.setStatus(SESSION_STATUS_ACTIVE);
+        session.setLoginTime(now);
+        session.setLastActiveTime(now);
+        session.setLogoutTime(null);
+        session.setPresenceExpireTime(presenceExpire);
+        session.setCreateBy(accountId);
+        session.setUpdateBy(accountId);
+        session.setDeleted(NOT_DELETED);
+        return session;
+    }
+
+    private LocalDateTime resolveActivityPresenceExpiry(LocalDateTime now) {
+        return now.plusSeconds(Math.max(1, presenceProperties.getIdleOfflineSeconds()));
     }
 
     private LocalDateTime resolveLoginPresenceExpiry(LocalDateTime now) {
