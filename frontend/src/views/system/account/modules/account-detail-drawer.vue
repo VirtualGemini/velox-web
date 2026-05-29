@@ -11,13 +11,15 @@
       <div class="account-detail-page">
         <section class="detail-hero">
           <div class="hero-identity">
-            <ElImage
-              :src="detail.header.avatar"
-              fit="cover"
-              class="hero-avatar"
-              :preview-src-list="detail.header.avatar ? [detail.header.avatar] : []"
-              preview-teleported
-            />
+            <div class="hero-media">
+              <ElImage
+                :src="detail.header.avatar"
+                fit="cover"
+                class="hero-avatar"
+                :preview-src-list="detail.header.avatar ? [detail.header.avatar] : []"
+                preview-teleported
+              />
+            </div>
             <div class="hero-copy">
               <div class="hero-title-row">
                 <h1 class="hero-title">{{ detail.header.username }}</h1>
@@ -26,11 +28,43 @@
               <p class="hero-subtitle">
                 {{ detail.header.nickname || detail.header.realName || '-' }}
               </p>
-              <div class="hero-role-list">
+            </div>
+            <div class="hero-role-strip">
+              <ElButton
+                v-if="roleListScrollable"
+                :icon="ArrowLeft"
+                :disabled="!canScrollRoleLeft"
+                link
+                size="small"
+                class="hero-role-nav"
+                aria-label="向左滚动角色列表"
+                @click="scrollRoleList('left')"
+              />
+              <div
+                ref="roleListRef"
+                class="hero-role-list"
+                :class="{ 'is-dragging': roleListDrag.isDragging.value }"
+                @click.capture="roleListDrag.preventClickAfterDrag"
+                @pointercancel="roleListDrag.endDrag"
+                @pointerdown="startRoleListDrag"
+                @pointermove="roleListDrag.moveDrag"
+                @pointerup="roleListDrag.endDrag"
+                @scroll.passive="updateRoleScrollState"
+              >
                 <ElTag v-for="role in detail.header.roleCodes" :key="role" effect="plain">
                   {{ role }}
                 </ElTag>
               </div>
+              <ElButton
+                v-if="roleListScrollable"
+                :icon="ArrowRight"
+                :disabled="!canScrollRoleRight"
+                link
+                size="small"
+                class="hero-role-nav"
+                aria-label="向右滚动角色列表"
+                @click="scrollRoleList('right')"
+              />
             </div>
           </div>
 
@@ -56,105 +90,148 @@
           </div>
         </section>
 
-        <ElTabs v-model="activeTab" class="detail-tabs">
-          <ElTabPane :label="t('pages.system.account.detailCard.sections.profile')" name="profile">
-            <div class="detail-list">
-              <div
-                v-for="row in profileRows"
-                :key="row.label"
-                class="detail-field"
-                :class="{ 'detail-field--full': row.full }"
-              >
-                <span class="detail-label">{{ row.label }}</span>
-                <div v-if="row.kind === 'tags'" class="detail-value tag-list">
-                  <ElTag v-for="tag in row.tags" :key="tag" effect="plain">{{ tag }}</ElTag>
-                  <span v-if="!row.tags?.length">-</span>
-                </div>
-                <span v-else class="detail-value" :class="{ 'detail-value--long': row.full }">
-                  {{ row.value || '-' }}
-                </span>
-              </div>
-            </div>
-          </ElTabPane>
-
-          <ElTabPane :label="t('pages.system.account.detailCard.sections.account')" name="account">
-            <div class="detail-list">
-              <div
-                v-for="row in accountRows"
-                :key="row.label"
-                class="detail-field"
-                :class="{ 'detail-field--full': row.full }"
-              >
-                <span class="detail-label">{{ row.label }}</span>
-                <span class="detail-value" :class="{ 'detail-value--long': row.full }">
-                  {{ row.value || '-' }}
-                </span>
-              </div>
-            </div>
-          </ElTabPane>
-
-          <ElTabPane
-            :label="t('pages.system.account.detailCard.sections.security')"
-            name="security"
+        <div
+          ref="detailTabsShellRef"
+          class="tab-scroll-shell"
+          :class="{ 'is-scrollable': detailTabsScrollable }"
+          @click.capture="detailTabsDrag.preventClickAfterDrag"
+          @pointercancel="detailTabsDrag.endDrag"
+          @pointerdown="startDetailTabsDrag"
+          @pointermove="detailTabsDrag.moveDrag"
+          @pointerup="detailTabsDrag.endDrag"
+        >
+          <ElButton
+            v-if="detailTabsScrollable"
+            :icon="ArrowLeft"
+            :disabled="!canScrollDetailTabsLeft"
+            link
+            size="small"
+            class="tab-scroll-nav tab-scroll-nav--left"
+            aria-label="向左滚动详情标签"
+            @click="scrollDetailTabs('left')"
+          />
+          <ElTabs
+            v-model="activeTab"
+            class="detail-tabs tab-scroll-tabs"
+            :class="{ 'is-dragging': detailTabsDrag.isDragging.value }"
           >
-            <div class="detail-list">
-              <div
-                v-for="row in securityRows"
-                :key="row.label"
-                class="detail-field"
-                :class="{ 'detail-field--full': row.full }"
-              >
-                <span class="detail-label">{{ row.label }}</span>
-                <div v-if="row.kind === 'tags'" class="detail-value tag-list">
-                  <ElTag v-for="tag in row.tags" :key="tag" effect="plain">{{ tag }}</ElTag>
-                  <span v-if="!row.tags?.length">-</span>
+            <ElTabPane
+              :label="t('pages.system.account.detailCard.sections.profile')"
+              name="profile"
+            >
+              <div class="detail-list">
+                <div
+                  v-for="row in profileRows"
+                  :key="row.label"
+                  class="detail-field"
+                  :class="{ 'detail-field--full': row.full }"
+                >
+                  <span class="detail-label">{{ row.label }}</span>
+                  <div v-if="row.kind === 'tags'" class="detail-value tag-list">
+                    <ElTag v-for="tag in row.tags" :key="tag" effect="plain">{{ tag }}</ElTag>
+                    <span v-if="!row.tags?.length">-</span>
+                  </div>
+                  <span v-else class="detail-value" :class="{ 'detail-value--long': row.full }">
+                    {{ row.value || '-' }}
+                  </span>
                 </div>
-                <span v-else class="detail-value">{{ row.value || '-' }}</span>
               </div>
-            </div>
-          </ElTabPane>
+            </ElTabPane>
 
-          <ElTabPane
-            :label="t('pages.system.account.detailCard.sections.thirdParty')"
-            name="thirdParty"
-          >
-            <div class="provider-list">
-              <div
-                v-for="provider in thirdPartyProviderRows"
-                :key="`${provider.displayName}-${provider.key}`"
-                class="provider-row"
-              >
-                <div class="provider-main">
-                  <img
-                    v-if="provider.iconUrl"
-                    :src="provider.iconUrl"
-                    :alt="provider.displayName"
-                    class="provider-icon"
-                  />
-                  <VeloxSvgIcon v-else :icon="provider.icon" class="provider-svg-icon" />
-                  <span class="provider-name">{{ provider.displayName }}</span>
+            <ElTabPane
+              :label="t('pages.system.account.detailCard.sections.account')"
+              name="account"
+            >
+              <div class="detail-list">
+                <div
+                  v-for="row in accountRows"
+                  :key="row.label"
+                  class="detail-field"
+                  :class="{ 'detail-field--full': row.full }"
+                >
+                  <span class="detail-label">{{ row.label }}</span>
+                  <span class="detail-value" :class="{ 'detail-value--long': row.full }">
+                    {{ row.value || '-' }}
+                  </span>
                 </div>
-                <ElTag :type="provider.bound ? 'success' : 'info'">
-                  {{
-                    provider.bound
-                      ? t('pages.system.account.detailCard.thirdParty.bound')
-                      : t('pages.system.account.detailCard.thirdParty.unbound')
-                  }}
-                </ElTag>
               </div>
-              <div v-if="!thirdPartyProviderRows.length" class="empty-text">-</div>
-            </div>
-          </ElTabPane>
-        </ElTabs>
+            </ElTabPane>
+
+            <ElTabPane
+              :label="t('pages.system.account.detailCard.sections.security')"
+              name="security"
+            >
+              <div class="detail-list">
+                <div
+                  v-for="row in securityRows"
+                  :key="row.label"
+                  class="detail-field"
+                  :class="{ 'detail-field--full': row.full }"
+                >
+                  <span class="detail-label">{{ row.label }}</span>
+                  <div v-if="row.kind === 'tags'" class="detail-value tag-list">
+                    <ElTag v-for="tag in row.tags" :key="tag" effect="plain">{{ tag }}</ElTag>
+                    <span v-if="!row.tags?.length">-</span>
+                  </div>
+                  <span v-else class="detail-value">{{ row.value || '-' }}</span>
+                </div>
+              </div>
+            </ElTabPane>
+
+            <ElTabPane
+              :label="t('pages.system.account.detailCard.sections.thirdParty')"
+              name="thirdParty"
+            >
+              <div class="provider-list">
+                <div
+                  v-for="provider in thirdPartyProviderRows"
+                  :key="`${provider.displayName}-${provider.key}`"
+                  class="provider-row"
+                >
+                  <div class="provider-main">
+                    <img
+                      v-if="provider.iconUrl"
+                      :src="provider.iconUrl"
+                      :alt="provider.displayName"
+                      class="provider-icon"
+                    />
+                    <VeloxSvgIcon v-else :icon="provider.icon" class="provider-svg-icon" />
+                    <span class="provider-name">{{ provider.displayName }}</span>
+                  </div>
+                  <ElTag :type="provider.bound ? 'success' : 'info'">
+                    {{
+                      provider.bound
+                        ? t('pages.system.account.detailCard.thirdParty.bound')
+                        : t('pages.system.account.detailCard.thirdParty.unbound')
+                    }}
+                  </ElTag>
+                </div>
+                <div v-if="!thirdPartyProviderRows.length" class="empty-text">-</div>
+              </div>
+            </ElTabPane>
+          </ElTabs>
+          <ElButton
+            v-if="detailTabsScrollable"
+            :icon="ArrowRight"
+            :disabled="!canScrollDetailTabsRight"
+            link
+            size="small"
+            class="tab-scroll-nav tab-scroll-nav--right"
+            aria-label="向右滚动详情标签"
+            @click="scrollDetailTabs('right')"
+          />
+        </div>
       </div>
     </template>
   </ElDrawer>
 </template>
 
 <script setup lang="ts">
-  import { computed, ref } from 'vue'
+  import { computed, nextTick, ref, watch } from 'vue'
   import { useWindowSize } from '@vueuse/core'
+  import { ArrowLeft, ArrowRight } from '@element-plus/icons-vue'
   import { useI18n } from 'vue-i18n'
+  import { useHorizontalDragScroll } from '@/hooks'
   import linuxdoIcon from '@/assets/images/svg/linuxdo.svg'
 
   interface DetailRow {
@@ -179,6 +256,16 @@
   const { t } = useI18n()
   const { width } = useWindowSize()
   const activeTab = ref('profile')
+  const roleListRef = ref<HTMLElement>()
+  const roleListScrollable = ref(false)
+  const canScrollRoleLeft = ref(false)
+  const canScrollRoleRight = ref(false)
+  const detailTabsShellRef = ref<HTMLElement>()
+  const detailTabsScrollable = ref(false)
+  const canScrollDetailTabsLeft = ref(false)
+  const canScrollDetailTabsRight = ref(false)
+  const roleListDrag = useHorizontalDragScroll()
+  const detailTabsDrag = useHorizontalDragScroll()
 
   const isMobile = computed(() => width.value <= 640)
   const drawerSize = computed(() => {
@@ -191,6 +278,93 @@
     get: () => props.visible,
     set: (value) => emit('update:visible', value)
   })
+
+  const updateRoleScrollState = () => {
+    const roleList = roleListRef.value
+    if (!roleList) {
+      roleListScrollable.value = false
+      canScrollRoleLeft.value = false
+      canScrollRoleRight.value = false
+      return
+    }
+
+    const maxScrollLeft = roleList.scrollWidth - roleList.clientWidth
+    roleListScrollable.value = maxScrollLeft > 1
+    canScrollRoleLeft.value = roleList.scrollLeft > 1
+    canScrollRoleRight.value = roleList.scrollLeft < maxScrollLeft - 1
+  }
+
+  const scrollRoleList = (direction: 'left' | 'right') => {
+    const roleList = roleListRef.value
+    if (!roleList) return
+
+    const distance = Math.max(roleList.clientWidth * 0.8, 96)
+    roleList.scrollBy({
+      left: direction === 'left' ? -distance : distance,
+      behavior: 'smooth'
+    })
+
+    window.setTimeout(updateRoleScrollState, 260)
+  }
+
+  const startRoleListDrag = (event: PointerEvent) => {
+    roleListDrag.startDrag(event, roleListRef.value, updateRoleScrollState)
+  }
+
+  const getTabsScroller = (shell?: HTMLElement) =>
+    shell?.querySelector<HTMLElement>('.el-tabs__nav-scroll')
+
+  const updateDetailTabsScrollState = () => {
+    const tabsScroller = getTabsScroller(detailTabsShellRef.value)
+    if (!tabsScroller) {
+      detailTabsScrollable.value = false
+      canScrollDetailTabsLeft.value = false
+      canScrollDetailTabsRight.value = false
+      return
+    }
+
+    const maxScrollLeft = tabsScroller.scrollWidth - tabsScroller.clientWidth
+    detailTabsScrollable.value = maxScrollLeft > 1
+    canScrollDetailTabsLeft.value = tabsScroller.scrollLeft > 1
+    canScrollDetailTabsRight.value = tabsScroller.scrollLeft < maxScrollLeft - 1
+  }
+
+  const scrollDetailTabs = (direction: 'left' | 'right') => {
+    const tabsScroller = getTabsScroller(detailTabsShellRef.value)
+    if (!tabsScroller) return
+
+    const distance = Math.max(tabsScroller.clientWidth * 0.8, 96)
+    tabsScroller.scrollBy({
+      left: direction === 'left' ? -distance : distance,
+      behavior: 'smooth'
+    })
+
+    window.setTimeout(updateDetailTabsScrollState, 260)
+  }
+
+  const startDetailTabsDrag = (event: PointerEvent) => {
+    detailTabsDrag.startDrag(
+      event,
+      getTabsScroller(detailTabsShellRef.value),
+      updateDetailTabsScrollState
+    )
+  }
+
+  watch(
+    () => [props.visible, props.detail?.header?.roleCodes?.join('|'), width.value],
+    () => {
+      nextTick(updateRoleScrollState)
+    },
+    { immediate: true }
+  )
+
+  watch(
+    () => [props.visible, activeTab.value, width.value],
+    () => {
+      nextTick(updateDetailTabsScrollState)
+    },
+    { immediate: true }
+  )
 
   const statusTag = computed(() => {
     const map = {
@@ -321,11 +495,6 @@
         value: account.username || '-'
       },
       {
-        label: t('pages.system.account.detailCard.account.remark'),
-        value: account.remark || '-',
-        full: true
-      },
-      {
         label: t('pages.system.account.detailCard.account.status'),
         value: t(statusTag.value.textKey)
       },
@@ -407,7 +576,15 @@
     display: grid;
     grid-template-columns: 80px minmax(0, 1fr);
     gap: 16px;
-    align-items: start;
+    align-items: center;
+  }
+
+  .hero-media {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+    min-width: 0;
   }
 
   .hero-avatar {
@@ -418,7 +595,11 @@
   }
 
   .hero-copy {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
     min-width: 0;
+    min-height: 80px;
   }
 
   .hero-title-row {
@@ -453,8 +634,56 @@
     min-width: 0;
   }
 
+  .hero-role-strip {
+    display: flex;
+    grid-column: 1 / -1;
+    gap: 8px;
+    align-items: center;
+    min-width: 0;
+  }
+
+  .hero-role-nav {
+    flex: 0 0 auto;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    color: var(--velox-text-color-secondary, var(--el-text-color-secondary));
+  }
+
+  .hero-role-nav.is-disabled {
+    opacity: 0.35;
+  }
+
   .hero-role-list {
-    margin-top: 12px;
+    flex: 1 1 auto;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+    touch-action: pan-y;
+    cursor: grab;
+    user-select: none;
+  }
+
+  .hero-role-list.is-dragging {
+    cursor: grabbing;
+  }
+
+  .hero-role-list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .hero-role-list :deep(.el-tag) {
+    flex: 0 0 auto;
+    height: auto;
+    min-height: 24px;
+    white-space: nowrap;
+  }
+
+  .hero-role-list :deep(.el-tag__content) {
+    line-height: 18px;
+    white-space: nowrap;
   }
 
   .hero-meta-list,
@@ -502,6 +731,67 @@
 
   .detail-tabs {
     margin-top: 14px;
+  }
+
+  .tab-scroll-shell {
+    position: relative;
+  }
+
+  .tab-scroll-shell.is-scrollable .tab-scroll-tabs :deep(.el-tabs__header) {
+    padding-right: 28px;
+    padding-left: 28px;
+  }
+
+  .tab-scroll-tabs :deep(.el-tabs__nav-wrap.is-scrollable) {
+    padding: 0;
+  }
+
+  .tab-scroll-tabs :deep(.el-tabs__nav-prev),
+  .tab-scroll-tabs :deep(.el-tabs__nav-next) {
+    display: none;
+  }
+
+  .tab-scroll-tabs :deep(.el-tabs__nav-scroll) {
+    overflow-x: auto;
+    scrollbar-width: none;
+    touch-action: pan-y;
+    cursor: grab;
+    user-select: none;
+  }
+
+  .tab-scroll-tabs :deep(.el-tabs__nav-scroll::-webkit-scrollbar) {
+    display: none;
+  }
+
+  .tab-scroll-tabs :deep(.el-tabs__nav) {
+    flex-wrap: nowrap;
+    transform: none !important;
+  }
+
+  .tab-scroll-tabs.is-dragging :deep(.el-tabs__nav-scroll) {
+    cursor: grabbing;
+  }
+
+  .tab-scroll-nav {
+    position: absolute;
+    top: 0;
+    z-index: 2;
+    width: 24px;
+    height: 32px;
+    padding: 0;
+    color: var(--velox-text-color-secondary, var(--el-text-color-secondary));
+  }
+
+  .tab-scroll-nav--left {
+    left: 0;
+  }
+
+  .tab-scroll-nav--right {
+    right: 0;
+  }
+
+  .tab-scroll-nav.is-disabled {
+    opacity: 0.35;
   }
 
   .detail-tabs :deep(.el-tabs__header) {
@@ -566,9 +856,17 @@
       gap: 12px;
     }
 
+    .hero-role-strip {
+      gap: 6px;
+    }
+
     .hero-avatar {
       width: 64px;
       height: 64px;
+    }
+
+    .hero-copy {
+      min-height: 64px;
     }
 
     .hero-title {

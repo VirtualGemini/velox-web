@@ -33,3 +33,6 @@ export { useLayoutHeight, useAutoLayoutHeight } from './core/useLayoutHeight'
 
 // sessionStorage 持久化 + SWR 数据缓存
 export { useSwrCache, clearSwrCache } from './core/useSwrCache'
+
+// 横向拖拽滚动
+export { useHorizontalDragScroll } from './core/useHorizontalDragScroll'
