@@ -149,9 +149,9 @@ const findMenuByPath = (
  *
  * 优先级：
  * 1. 工作台 `/dashboard/console`
- * 2. 个人中心 `/system/account-center`（即便配置为隐藏也接受，作为普通用户的兜底首页）
+ * 2. 账号中心 `/system/account-center`（即便配置为隐藏也接受，作为普通用户的兜底首页）
  * 3. 后端返回顺序的第一个可见菜单
- * 4. 仍无落点时，使用首个拥有真实组件路径的菜单（含隐藏项），保证普通用户至少能进入个人中心
+ * 4. 仍无落点时，使用首个拥有真实组件路径的菜单（含隐藏项），保证普通用户至少能进入账号中心
  */
 export const resolveHomePath = (menuList: AppRouteRecord[]): string => {
   if (!Array.isArray(menuList) || menuList.length === 0) {

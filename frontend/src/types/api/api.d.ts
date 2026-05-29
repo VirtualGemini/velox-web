@@ -140,7 +140,7 @@ declare namespace Api {
       language?: string
     }
 
-    /** 用户详细信息（个人中心专用） */
+    /** 用户详细信息（账号中心专用） */
     interface AccountDetail {
       buttons: string[]
       roles: string[]

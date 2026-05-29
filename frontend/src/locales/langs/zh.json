@@ -19,7 +19,7 @@
       "title": "搜索"
     },
     "user": {
-      "userCenter": "个人中心",
+      "accountCenter": "账号中心",
       "docs": "使用文档",
       "github": "Github",
       "lockScreen": "锁定屏幕",

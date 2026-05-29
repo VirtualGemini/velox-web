@@ -35,7 +35,7 @@
         <ul class="py-4 mt-3 border-t border-g-300/80">
           <li class="btn-item" @click="goPage('/system/account-center')">
             <VeloxSvgIcon icon="ri:user-3-line" />
-            <span>{{ $t('topBar.user.userCenter') }}</span>
+            <span>{{ $t('topBar.user.accountCenter') }}</span>
           </li>
           <li class="btn-item" @click="toDocs()">
             <VeloxSvgIcon icon="ri:book-2-line" />
