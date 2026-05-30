@@ -3,6 +3,7 @@ package com.velox.module.system.role.controller;
 import com.velox.common.result.Result;
 import com.velox.framework.security.api.annotation.RequirePermission;
 import com.velox.module.system.id.frontend.SystemFrontendIdCodecSupport;
+import com.velox.module.system.role.dto.RoleBoundAccountsDTO;
 import com.velox.module.system.role.dto.RoleListItemDTO;
 import com.velox.module.system.role.dto.RoleMenuPermissionUpdateCommand;
 import com.velox.module.system.role.dto.RoleQuery;
@@ -60,6 +61,20 @@ public class RoleController {
     @DeleteMapping("/{roleId}")
     public Result<Boolean> delete(@PathVariable("roleId") String roleId) {
         return Result.ok(roleService.delete(roleId));
+    }
+
+    @Operation(summary = "openapi.system.role.delete_batch.summary")
+    @RequirePermission("system:role:delete")
+    @DeleteMapping("/delete-batch")
+    public Result<Boolean> deleteBatch(@RequestParam("ids") List<String> ids) {
+        return Result.ok(roleService.deleteBatch(ids));
+    }
+
+    @Operation(summary = "openapi.system.role.bound_accounts.summary")
+    @RequirePermission("system:role:query")
+    @GetMapping("/bound-accounts")
+    public Result<List<RoleBoundAccountsDTO>> boundAccounts(@RequestParam("ids") List<String> ids) {
+        return Result.ok(roleService.getBoundAccounts(ids));
     }
 
     @Operation(summary = "openapi.system.role.get_menu_permissions.summary")

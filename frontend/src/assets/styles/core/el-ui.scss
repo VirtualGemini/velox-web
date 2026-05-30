@@ -416,6 +416,16 @@ html.dark .el-card {
   }
 }
 
+// 批量删除按钮（danger plain）hover/focus 颜色更柔和、更透明
+.el-button.velox-batch-delete.is-plain:not(.is-disabled) {
+  &:hover,
+  &:focus {
+    color: var(--el-color-danger) !important;
+    background-color: var(--el-color-danger-light-8) !important;
+    border-color: var(--el-color-danger-light-5) !important;
+  }
+}
+
 // 修改el-tag样式
 .el-tag {
   font-weight: 500;

@@ -126,7 +126,8 @@ export function fetchFileDeleteById(id: string) {
 export function fetchFileDeleteBatch(ids: string[]) {
   return request.del<boolean>({
     url: '/api/file/delete-batch',
-    params: { ids }
+    params: { ids },
+    paramsSerializer: { indexes: null }
   })
 }
 
@@ -215,7 +216,8 @@ export function fetchFileConfigDelete(id: string) {
 export function fetchFileConfigDeleteBatch(ids: string[]) {
   return request.del<boolean>({
     url: '/api/file-config/delete-batch',
-    params: { ids }
+    params: { ids },
+    paramsSerializer: { indexes: null }
   })
 }
 

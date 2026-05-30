@@ -20,16 +20,29 @@
             <ElButton v-if="hasAuth('system:role:create')" @click="showDialog('add')" v-ripple>
               {{ t('pages.system.role.actions.addRole') }}
             </ElButton>
+            <ElButton
+              v-if="hasAuth('system:role:delete')"
+              class="velox-batch-delete"
+              type="danger"
+              plain
+              :disabled="selectedRows.length === 0"
+              @click="handleBatchDelete"
+              v-ripple
+            >
+              {{ t('common.batchDelete') }}
+            </ElButton>
           </ElSpace>
         </template>
       </VeloxTableHeader>
 
       <!-- 表格 -->
       <VeloxTable
+        ref="veloxTableRef"
         :loading="loading"
         :data="data"
         :columns="columns"
         :pagination="pagination"
+        @selection-change="handleSelectionChange"
         @pagination:size-change="handleSizeChange"
         @pagination:current-change="handleCurrentChange"
       >
@@ -57,9 +70,11 @@
   import { ButtonMoreItem } from '@/components/core/forms/velox-button-more/index.vue'
   import { useTable } from '@/hooks/core/useTable'
   import {
+    fetchBatchDeleteRole,
     fetchCreateRole,
     fetchDeleteRole,
     fetchGetRoleList,
+    fetchRoleBoundAccounts,
     fetchUpdateRole
   } from '@/api/system-manage'
   import VeloxButtonMore from '@/components/core/forms/velox-button-more/index.vue'
@@ -94,6 +109,8 @@
   const dialogVisible = ref(false)
   const permissionDialog = ref(false)
   const currentRoleData = ref<RoleListItem | undefined>(undefined)
+  const veloxTableRef = ref()
+  const selectedRows = ref<RoleListItem[]>([])
 
   const isSystemRole = (row?: RoleListItem) => row?.type === 0
   const isSuperRole = (row?: RoleListItem) => row?.roleCode === 'R_SUPER'
@@ -120,6 +137,7 @@
         size: 20
       },
       columnsFactory: () => [
+        { type: 'selection', width: 52, selectable: (row: RoleListItem) => !isSystemRole(row) },
         { type: 'index', label: t('table.column.index'), minWidth: 96 },
         {
           prop: 'roleName',
@@ -289,23 +307,44 @@
     return items
   }
 
-  const deleteRole = (row: RoleListItem) => {
+  const formatBoundNames = (names: string[]): string => {
+    const MAX_DISPLAY = 10
+    if (names.length <= MAX_DISPLAY) {
+      return names.join('、')
+    }
+    return (
+      names.slice(0, MAX_DISPLAY).join('、') +
+      t('pages.system.role.messages.boundMoreSuffix', { count: names.length - MAX_DISPLAY })
+    )
+  }
+
+  const deleteRole = async (row: RoleListItem) => {
     if (isSystemRole(row)) {
       ElMessage.warning(t('pages.system.role.messages.systemRoleCannotDelete'))
       return
     }
-    ElMessageBox.confirm(
-      t('pages.system.role.messages.confirmDelete', { name: row.roleName }),
-      t('pages.system.role.messages.deleteTitle'),
-      {
-        confirmButtonText: t('common.confirm'),
-        cancelButtonText: t('common.cancel'),
-        type: 'warning'
+    const roleId = resolveRoleId(row)
+    if (!roleId) return
+
+    let confirmMessage = t('pages.system.role.messages.confirmDelete', { name: row.roleName })
+    try {
+      const bindings = await fetchRoleBoundAccounts([roleId])
+      const accountNames = bindings[0]?.accountNames ?? []
+      if (accountNames.length > 0) {
+        confirmMessage = t('pages.system.role.messages.confirmDeleteBound', {
+          accounts: formatBoundNames(accountNames)
+        })
       }
-    )
+    } catch {
+      // 查询绑定信息失败时退回普通删除提示
+    }
+
+    ElMessageBox.confirm(confirmMessage, t('pages.system.role.messages.deleteTitle'), {
+      confirmButtonText: t('common.confirm'),
+      cancelButtonText: t('common.cancel'),
+      type: 'warning'
+    })
       .then(async () => {
-        const roleId = resolveRoleId(row)
-        if (!roleId) return
         await fetchDeleteRole(roleId)
         ElMessage.success(t('pages.system.role.messages.deleteSuccess'))
         refreshData()
@@ -313,5 +352,47 @@
       .catch(() => {
         ElMessage.info(t('pages.system.role.messages.deleteCancelled'))
       })
+  }
+
+  const handleSelectionChange = (selection: RoleListItem[]) => {
+    selectedRows.value = selection
+  }
+
+  const handleBatchDelete = async () => {
+    if (selectedRows.value.length === 0) {
+      ElMessage.warning(t('common.batchDeleteEmpty'))
+      return
+    }
+    const roleIds = selectedRows.value.map((row) => row.roleId)
+
+    let confirmMessage = t('common.batchDeleteConfirm', { count: selectedRows.value.length })
+    try {
+      const bindings = await fetchRoleBoundAccounts(roleIds)
+      const inUseRoleNames = bindings
+        .filter((item) => (item.accountNames?.length ?? 0) > 0)
+        .map((item) => item.roleName)
+      if (inUseRoleNames.length > 0) {
+        confirmMessage = t('pages.system.role.messages.batchDeleteBound', {
+          count: selectedRows.value.length,
+          roles: formatBoundNames(inUseRoleNames)
+        })
+      }
+    } catch {
+      // 查询绑定信息失败时退回普通批量删除提示
+    }
+
+    ElMessageBox.confirm(confirmMessage, t('common.batchDeleteTitle'), {
+      confirmButtonText: t('common.confirm'),
+      cancelButtonText: t('common.cancel'),
+      type: 'warning'
+    })
+      .then(async () => {
+        await fetchBatchDeleteRole(roleIds)
+        ElMessage.success(t('common.batchDeleteSuccess'))
+        veloxTableRef.value?.elTableRef?.clearSelection()
+        selectedRows.value = []
+        refreshData()
+      })
+      .catch(() => {})
   }
 </script>

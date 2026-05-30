@@ -19,11 +19,23 @@
             <ElButton v-if="hasAuth('system:account:create')" @click="showDialog('add')" v-ripple>
               {{ t('pages.system.account.actions.addAccount') }}
             </ElButton>
+            <ElButton
+              v-if="hasAuth('system:account:delete')"
+              class="velox-batch-delete"
+              type="danger"
+              plain
+              :disabled="selectedRows.length === 0"
+              @click="handleBatchDelete"
+              v-ripple
+            >
+              {{ t('common.batchDelete') }}
+            </ElButton>
           </ElSpace>
         </template>
       </VeloxTableHeader>
 
       <VeloxTable
+        ref="veloxTableRef"
         :loading="loading"
         :data="data"
         :columns="columns"
@@ -49,6 +61,7 @@
   import { useTable } from '@/hooks/core/useTable'
   import { useAuth } from '@/hooks/core/useAuth'
   import {
+    fetchBatchDeleteAccount,
     fetchCreateAccount,
     fetchDeleteAccount,
     fetchGetAccountDetailCard,
@@ -74,6 +87,7 @@
   const currentAccountData = ref<Partial<AccountListItem>>({})
   const detailVisible = ref(false)
   const currentAccountDetail = ref<Api.SystemManage.AccountDetailCard>()
+  const veloxTableRef = ref()
   const selectedRows = ref<AccountListItem[]>([])
   const showSearchBar = ref(false)
 
@@ -259,6 +273,28 @@
 
   const handleSelectionChange = (selection: AccountListItem[]): void => {
     selectedRows.value = selection
+  }
+
+  const handleBatchDelete = (): void => {
+    if (selectedRows.value.length === 0) {
+      ElMessage.warning(t('common.batchDeleteEmpty'))
+      return
+    }
+    ElMessageBox.confirm(
+      t('common.batchDeleteConfirm', { count: selectedRows.value.length }),
+      t('common.batchDeleteTitle'),
+      {
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
+        type: 'warning'
+      }
+    ).then(async () => {
+      await fetchBatchDeleteAccount(selectedRows.value.map((row) => row.accountId))
+      ElMessage.success(t('common.batchDeleteSuccess'))
+      veloxTableRef.value?.elTableRef?.clearSelection()
+      selectedRows.value = []
+      refreshData()
+    })
   }
 </script>
 

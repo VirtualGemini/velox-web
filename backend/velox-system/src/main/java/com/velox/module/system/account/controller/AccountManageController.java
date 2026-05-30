@@ -18,9 +18,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.velox.common.result.PageResult;
+
+import java.util.List;
 
 @Tag(name = "openapi.system.account.manage.tag.name", description = "openapi.system.account.manage.tag.description")
 @RestController
@@ -71,5 +74,12 @@ public class AccountManageController {
     @DeleteMapping("/{accountId}")
     public Result<Boolean> delete(@PathVariable("accountId") String accountId) {
         return Result.ok(accountManageService.delete(accountId));
+    }
+
+    @Operation(summary = "openapi.system.account.manage.delete_batch.summary")
+    @RequirePermission("system:account:delete")
+    @DeleteMapping("/delete-batch")
+    public Result<Boolean> deleteBatch(@RequestParam("ids") List<String> ids) {
+        return Result.ok(accountManageService.deleteBatch(ids));
     }
 }

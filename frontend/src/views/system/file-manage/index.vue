@@ -56,15 +56,28 @@
             <ElButton v-if="canAccess('system:file:upload')" @click="openUploadDialog" v-ripple>
               {{ t('pages.system.fileManage.actions.uploadFile') }}
             </ElButton>
+            <ElButton
+              v-if="canAccess('system:file:delete')"
+              class="velox-batch-delete"
+              type="danger"
+              plain
+              :disabled="selectedRows.length === 0"
+              @click="handleBatchDelete"
+              v-ripple
+            >
+              {{ t('common.batchDelete') }}
+            </ElButton>
           </ElSpace>
         </template>
       </VeloxTableHeader>
 
       <VeloxTable
+        ref="veloxTableRef"
         :loading="loading"
         :data="data"
         :columns="columns"
         :pagination="pagination"
+        @selection-change="handleSelectionChange"
         @pagination:size-change="handleSizeChange"
         @pagination:current-change="handleCurrentChange"
       />
@@ -114,6 +127,7 @@
     type FileRecord,
     fetchFileList,
     fetchFileDeleteById,
+    fetchFileDeleteBatch,
     fetchFileUpload,
     fetchFilePresignGetUrl,
     fetchFileDownloadBlob,
@@ -158,6 +172,8 @@
 
   const searchForm = ref<FileSearchForm>(createDefaultSearchForm())
   const showSearchBar = ref(false)
+  const veloxTableRef = ref()
+  const selectedRows = ref<FileRecord[]>([])
 
   const searchItems = computed(() => [
     {
@@ -242,6 +258,7 @@
         size: 'size'
       },
       columnsFactory: () => [
+        { type: 'selection', width: 52 },
         {
           type: 'index',
           label: t('table.column.index'),
@@ -414,6 +431,31 @@
     )
     await fetchFileDeleteById(row.id)
     ElMessage.success(t('pages.system.fileManage.messages.deleteSuccess'))
+    refreshData()
+  }
+
+  function handleSelectionChange(selection: FileRecord[]) {
+    selectedRows.value = selection
+  }
+
+  async function handleBatchDelete() {
+    if (selectedRows.value.length === 0) {
+      ElMessage.warning(t('common.batchDeleteEmpty'))
+      return
+    }
+    await ElMessageBox.confirm(
+      t('common.batchDeleteConfirm', { count: selectedRows.value.length }),
+      t('common.batchDeleteTitle'),
+      {
+        confirmButtonText: t('common.confirm'),
+        cancelButtonText: t('common.cancel'),
+        type: 'warning'
+      }
+    )
+    await fetchFileDeleteBatch(selectedRows.value.map((row) => row.id))
+    ElMessage.success(t('common.batchDeleteSuccess'))
+    veloxTableRef.value?.elTableRef?.clearSelection()
+    selectedRows.value = []
     refreshData()
   }
 

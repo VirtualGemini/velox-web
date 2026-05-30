@@ -39,6 +39,15 @@ export function fetchDeleteAccount(accountId: string) {
   })
 }
 
+// 批量删除账号
+export function fetchBatchDeleteAccount(accountIds: string[]) {
+  return request.del<boolean>({
+    url: '/api/account/delete-batch',
+    params: { ids: accountIds },
+    paramsSerializer: { indexes: null }
+  })
+}
+
 export function fetchGetAccountDetailCard(accountId: string) {
   const normalizedAccountId = requireId(accountId, '账号')
   return request.get<Api.SystemManage.AccountDetailCard>({
@@ -73,6 +82,30 @@ export function fetchDeleteRole(roleId: string) {
   const normalizedRoleId = requireId(roleId, '角色')
   return request.del<boolean>({
     url: `/api/role/${normalizedRoleId}`
+  })
+}
+
+// 批量删除角色
+export function fetchBatchDeleteRole(roleIds: string[]) {
+  return request.del<boolean>({
+    url: '/api/role/delete-batch',
+    params: { ids: roleIds },
+    paramsSerializer: { indexes: null }
+  })
+}
+
+export interface RoleBoundAccounts {
+  roleId: string
+  roleName: string
+  accountNames: string[]
+}
+
+// 查询角色绑定的账号（删除前风险提示）
+export function fetchRoleBoundAccounts(roleIds: string[]) {
+  return request.get<RoleBoundAccounts[]>({
+    url: '/api/role/bound-accounts',
+    params: { ids: roleIds },
+    paramsSerializer: { indexes: null }
   })
 }
 

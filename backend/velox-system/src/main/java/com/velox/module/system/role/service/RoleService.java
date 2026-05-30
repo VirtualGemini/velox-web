@@ -1,6 +1,7 @@
 package com.velox.module.system.role.service;
 
 import com.velox.common.result.PageResult;
+import com.velox.module.system.role.dto.RoleBoundAccountsDTO;
 import com.velox.module.system.role.dto.RoleListItemDTO;
 import com.velox.module.system.role.dto.RoleMenuPermissionUpdateCommand;
 import com.velox.module.system.role.dto.RoleQuery;
@@ -17,6 +18,10 @@ public interface RoleService {
     Boolean update(String roleId, RoleSaveCommand command);
 
     Boolean delete(String roleId);
+
+    Boolean deleteBatch(List<String> roleIds);
+
+    List<RoleBoundAccountsDTO> getBoundAccounts(List<String> roleIds);
 
     List<String> getRoleMenuPermissions(String roleId);
 

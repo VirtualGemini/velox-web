@@ -878,10 +878,5 @@
     .detail-list {
       grid-template-columns: 1fr;
     }
-
-    .provider-row {
-      flex-direction: column;
-      gap: 10px;
-    }
   }
 </style>

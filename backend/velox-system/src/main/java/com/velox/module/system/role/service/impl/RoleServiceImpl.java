@@ -10,15 +10,18 @@ import com.velox.module.system.domain.model.Menu;
 import com.velox.module.system.domain.model.Role;
 import com.velox.module.system.domain.model.RoleMenuPermission;
 import com.velox.module.system.domain.model.AccountRole;
+import com.velox.module.system.domain.model.Account;
 import com.velox.module.system.persistence.MenuMapper;
 import com.velox.module.system.persistence.RoleMapper;
 import com.velox.module.system.persistence.RoleMenuPermissionMapper;
 import com.velox.module.system.persistence.AccountRoleMapper;
+import com.velox.module.system.persistence.AccountMapper;
 import com.velox.module.system.persistence.support.MenuQuerySupport;
 import com.velox.framework.web.RequestDateTimeFormatter;
 import com.velox.module.system.id.generator.SystemEntityIdGenerator;
 import com.velox.module.system.permission.service.PermissionService;
 import com.velox.module.system.role.dto.RoleListItemDTO;
+import com.velox.module.system.role.dto.RoleBoundAccountsDTO;
 import com.velox.module.system.role.dto.RoleMenuPermissionUpdateCommand;
 import com.velox.module.system.role.dto.RoleQuery;
 import com.velox.module.system.role.dto.RoleSaveCommand;
@@ -47,6 +50,7 @@ public class RoleServiceImpl implements RoleService {
 
     private final MenuMapper menuMapper;
     private final RoleMapper roleMapper;
+    private final AccountMapper accountMapper;
     private final AccountRoleMapper userRoleMapper;
     private final RoleMenuPermissionMapper roleMenuPermissionMapper;
     private final PermissionService permissionService;
@@ -56,6 +60,7 @@ public class RoleServiceImpl implements RoleService {
     public RoleServiceImpl(
             MenuMapper menuMapper,
             RoleMapper roleMapper,
+            AccountMapper accountMapper,
             AccountRoleMapper userRoleMapper,
             RoleMenuPermissionMapper roleMenuPermissionMapper,
             PermissionService permissionService,
@@ -64,6 +69,7 @@ public class RoleServiceImpl implements RoleService {
     ) {
         this.menuMapper = menuMapper;
         this.roleMapper = roleMapper;
+        this.accountMapper = accountMapper;
         this.userRoleMapper = userRoleMapper;
         this.roleMenuPermissionMapper = roleMenuPermissionMapper;
         this.permissionService = permissionService;
@@ -161,11 +167,18 @@ public class RoleServiceImpl implements RoleService {
         if (Integer.valueOf(RoleTypeEnum.SYSTEM.getCode()).equals(role.getType())) {
             throw new ApiException(BusinessErrorCode.SYSTEM_ROLE_DELETE_FORBIDDEN);
         }
-        long userBindingCount = userRoleMapper.selectCount(new LambdaQueryWrapper<AccountRole>()
-                .eq(AccountRole::getDeleted, 0)
-                .eq(AccountRole::getRoleId, roleId));
-        if (userBindingCount > 0) {
-            throw new ApiException(BusinessErrorCode.DATA_IN_USE);
+        String operator = currentOperator();
+
+        // 解除该角色与账号的绑定（逻辑删除），保证被删除的角色在用户侧不再可见
+        List<String> boundRelationIds = userRoleMapper.selectList(new LambdaQueryWrapper<AccountRole>()
+                        .eq(AccountRole::getDeleted, 0)
+                        .eq(AccountRole::getRoleId, roleId))
+                .stream()
+                .map(AccountRole::getId)
+                .filter(Objects::nonNull)
+                .toList();
+        if (!boundRelationIds.isEmpty()) {
+            userRoleMapper.logicalDeleteByIds(boundRelationIds, operator);
         }
 
         roleMapper.update(null, new LambdaUpdateWrapper<Role>()
@@ -173,9 +186,83 @@ public class RoleServiceImpl implements RoleService {
                 .eq(Role::getDeleted, 0)
                 .set(Role::getDeleted, 1)
                 .set(Role::getUpdateTime, LocalDateTime.now(ZoneOffset.UTC))
-                .set(Role::getUpdateBy, currentOperator()));
+                .set(Role::getUpdateBy, operator));
         roleMenuPermissionMapper.delete(new LambdaQueryWrapper<RoleMenuPermission>().eq(RoleMenuPermission::getRoleId, roleId));
-        return role != null;
+        return true;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Boolean deleteBatch(List<String> roleIds) {
+        if (roleIds == null || roleIds.isEmpty()) {
+            return true;
+        }
+        roleIds.stream()
+                .filter(StringUtils::hasText)
+                .distinct()
+                .forEach(this::delete);
+        return true;
+    }
+
+    @Override
+    public List<RoleBoundAccountsDTO> getBoundAccounts(List<String> roleIds) {
+        if (roleIds == null || roleIds.isEmpty()) {
+            return List.of();
+        }
+        List<String> distinctRoleIds = roleIds.stream()
+                .filter(StringUtils::hasText)
+                .distinct()
+                .toList();
+        if (distinctRoleIds.isEmpty()) {
+            return List.of();
+        }
+
+        List<AccountRole> relations = userRoleMapper.selectList(new LambdaQueryWrapper<AccountRole>()
+                .eq(AccountRole::getDeleted, 0)
+                .in(AccountRole::getRoleId, distinctRoleIds));
+        if (relations.isEmpty()) {
+            return List.of();
+        }
+
+        Map<String, String> roleNameMap = roleMapper.selectList(new LambdaQueryWrapper<Role>()
+                        .in(Role::getId, distinctRoleIds))
+                .stream()
+                .collect(Collectors.toMap(Role::getId, Role::getRoleName, (left, right) -> left));
+
+        List<String> accountIds = relations.stream()
+                .map(AccountRole::getAccountId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+        Map<String, String> usernameMap = accountIds.isEmpty()
+                ? Map.<String, String>of()
+                : accountMapper.selectList(new LambdaQueryWrapper<Account>()
+                        .eq(Account::getDeleted, 0)
+                        .in(Account::getId, accountIds))
+                .stream()
+                .collect(Collectors.toMap(Account::getId, Account::getUsername, (left, right) -> left));
+
+        Map<String, List<String>> usernamesByRole = new LinkedHashMap<>();
+        for (AccountRole relation : relations) {
+            String username = usernameMap.get(relation.getAccountId());
+            if (username == null) {
+                continue;
+            }
+            usernamesByRole.computeIfAbsent(relation.getRoleId(), key -> new ArrayList<>()).add(username);
+        }
+
+        List<RoleBoundAccountsDTO> result = new ArrayList<>();
+        for (Map.Entry<String, List<String>> entry : usernamesByRole.entrySet()) {
+            if (entry.getValue().isEmpty()) {
+                continue;
+            }
+            RoleBoundAccountsDTO dto = new RoleBoundAccountsDTO();
+            dto.setRoleId(entry.getKey());
+            dto.setRoleName(roleNameMap.get(entry.getKey()));
+            dto.setAccountNames(entry.getValue());
+            result.add(dto);
+        }
+        return result;
     }
 
     @Override

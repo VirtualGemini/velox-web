@@ -271,6 +271,19 @@ public class AccountManageServiceImpl implements AccountManageService {
         return true;
     }
 
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Boolean deleteBatch(List<String> accountIds) {
+        if (accountIds == null || accountIds.isEmpty()) {
+            return true;
+        }
+        accountIds.stream()
+                .filter(StringUtils::hasText)
+                .distinct()
+                .forEach(this::delete);
+        return true;
+    }
+
     private void ensureCanUpdateUser(String userId) {
         String currentUserId = securitySessionService.currentLoginIdOrNull();
         if (!StringUtils.hasText(currentUserId)) {
