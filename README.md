@@ -128,7 +128,7 @@ pnpm serve
 
 ## License
 
-This project is licensed under the MIT License. See [LICENSE](./LICENSE).
+This repository is released under the MIT License (see [LICENSE](./LICENSE)), which also describes the licensing of bundled components. The backend (`backend/`) and the frontend (`frontend/`) each carry their own LICENSE file; the frontend is derived from a third-party open-source project and retains its original MIT license and copyright.
 Additional risk allocation, warranty disclaimers, and use terms are described in [DISCLAIMER.md](./DISCLAIMER.md) and [TERMS_OF_USE.md](./TERMS_OF_USE.md).
 
 <br>

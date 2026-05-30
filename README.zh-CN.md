@@ -128,7 +128,7 @@ pnpm serve
 
 ## 许可证
 
-本项目使用 MIT License。详见 [LICENSE](./LICENSE)。
+本仓库整体采用 MIT License（详见 [LICENSE](./LICENSE)），根许可证中亦说明了各组成部分的许可情况。后端（`backend/`）与前端（`frontend/`）各自附带独立的 LICENSE 文件；其中前端源自某第三方开源项目，保留了其原始的 MIT 许可证与版权声明。
 关于额外的风险分配、保证免责声明和使用条件，详见 [DISCLAIMER.zh-CN.md](./DISCLAIMER.zh-CN.md) 与 [TERMS_OF_USE.zh-CN.md](./TERMS_OF_USE.zh-CN.md)。
 
 <br>

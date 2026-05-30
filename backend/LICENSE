@@ -19,17 +19,3 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
--------------------------------------------------------------------------------
-Third-Party Components
-
-This repository is an aggregate of components that are each governed by their
-own LICENSE file:
-
-  backend/   Copyright (c) 2026 VirtualGemini — MIT License (see backend/LICENSE)
-  frontend/  Derived from a third-party open-source project,
-             Copyright (c) 2025 SuperManTT — MIT License (see frontend/LICENSE)
-
-The frontend retains its original author's copyright and permission notice as
-required by the MIT License. Your use of each component is also subject to the
-LICENSE file located in that component's directory.
