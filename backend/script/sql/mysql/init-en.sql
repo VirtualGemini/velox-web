@@ -401,19 +401,19 @@ DROP TABLE IF EXISTS `sys_access_control`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `sys_access_control` (
-  `id` bigint NOT NULL COMMENT '主键ID',
-  `general_register_enabled` tinyint DEFAULT '1' COMMENT '通用注册开关(0-关闭 1-开启)',
-  `forgot_password_enabled` tinyint DEFAULT '1' COMMENT '忘记密码开关(0-关闭 1-开启)',
-  `login_methods` varchar(128) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '已启用的普通登录方式(逗号分隔)',
-  `third_party_login_channels` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '已启用的第三方登录渠道(逗号分隔)',
-  `third_party_register_channels` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '已启用的第三方注册渠道(逗号分隔)',
-  `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  `create_by` bigint DEFAULT NULL COMMENT '创建人',
-  `update_by` bigint DEFAULT NULL COMMENT '更新人',
-  `deleted` tinyint DEFAULT '0' COMMENT '逻辑删除(0-未删除 1-已删除)',
+  `id` bigint NOT NULL COMMENT 'Primary Key ID',
+  `general_register_enabled` tinyint DEFAULT '1' COMMENT 'General Registration Switch (0-Off 1-On)',
+  `forgot_password_enabled` tinyint DEFAULT '1' COMMENT 'Forgot Password Switch (0-Off 1-On)',
+  `login_methods` varchar(128) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Enabled normal login methods (comma-separated)',
+  `third_party_login_channels` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Enabled third-party login channels (comma-separated)',
+  `third_party_register_channels` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Enabled third-party registration channels (comma-separated)',
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT 'Created Time',
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT 'Updated Time',
+  `create_by` bigint DEFAULT NULL COMMENT 'Created By',
+  `update_by` bigint DEFAULT NULL COMMENT 'Updated By',
+  `deleted` tinyint DEFAULT '0' COMMENT 'Logical Delete (0-Not Deleted 1-Deleted)',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='访问控制配置表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Access Control Config Table';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -547,11 +547,11 @@ INSERT INTO `sys_menu` (`id`, `parent_id`, `menu_type`, `name`, `title`, `path`,
   ('1900000000000002002','1900000000000002001','menu','AccessControl','menus.settings.accessControl','access-control','/settings/access-control',NULL,NULL,NULL,1,1,1,0,0,NULL,0,0,NULL,0,NULL,0,'2026-05-10 12:00:00','2026-05-10 12:00:00',1900000000000000027,1900000000000000027,0),
   ('1900000000000000206','1900000000000002002','button','AccessControlView','Page Access',NULL,NULL,NULL,NULL,'settings:access-control:view',1,0,0,0,0,NULL,0,0,NULL,0,NULL,0,'2026-05-10 12:00:00','2026-05-10 12:00:00',1900000000000000027,1900000000000000027,0),
   ('1900000000000002003','1900000000000002002','button','AccessControlQuery','Query',NULL,NULL,NULL,NULL,'settings:access-control:query',1,1,0,0,0,NULL,0,0,NULL,0,NULL,0,'2026-05-10 12:00:00','2026-05-10 12:00:00',1900000000000000027,1900000000000000027,0),
-  ('1900000000000002004','1900000000000002002','button','AccessControlGeneralRegister','通用注册管理',NULL,NULL,NULL,NULL,'settings:access-control:general-register',1,1,0,0,0,NULL,0,0,NULL,0,NULL,0,'2026-05-10 12:00:00','2026-05-10 12:00:00',1900000000000000027,1900000000000000027,0),
-  ('1900000000000002005','1900000000000002002','button','AccessControlThirdPartyRegister','第三方注册管理',NULL,NULL,NULL,NULL,'settings:access-control:third-party-register',1,1,0,0,0,NULL,0,0,NULL,0,NULL,0,'2026-05-10 12:00:00','2026-05-10 12:00:00',1900000000000000027,1900000000000000027,0),
-  ('1900000000000002006','1900000000000002002','button','AccessControlLoginMethod','普通登录方式管理',NULL,NULL,NULL,NULL,'settings:access-control:login-method',1,1,0,0,0,NULL,0,0,NULL,0,NULL,0,'2026-05-10 12:00:00','2026-05-10 12:00:00',1900000000000000027,1900000000000000027,0),
-  ('1900000000000002007','1900000000000002002','button','AccessControlThirdPartyLogin','第三方登录方式管理',NULL,NULL,NULL,NULL,'settings:access-control:third-party-login',1,1,0,0,0,NULL,0,0,NULL,0,NULL,0,'2026-05-10 12:00:00','2026-05-10 12:00:00',1900000000000000027,1900000000000000027,0),
-  ('1900000000000002008','1900000000000002002','button','AccessControlForgotPassword','忘记密码管理',NULL,NULL,NULL,NULL,'settings:access-control:forgot-password',1,1,0,0,0,NULL,0,0,NULL,0,NULL,0,'2026-05-10 12:00:00','2026-05-10 12:00:00',1900000000000000027,1900000000000000027,0);
+  ('1900000000000002004','1900000000000002002','button','AccessControlGeneralRegister','General Registration',NULL,NULL,NULL,NULL,'settings:access-control:general-register',1,1,0,0,0,NULL,0,0,NULL,0,NULL,0,'2026-05-10 12:00:00','2026-05-10 12:00:00',1900000000000000027,1900000000000000027,0),
+  ('1900000000000002005','1900000000000002002','button','AccessControlThirdPartyRegister','Third-party Registration',NULL,NULL,NULL,NULL,'settings:access-control:third-party-register',1,1,0,0,0,NULL,0,0,NULL,0,NULL,0,'2026-05-10 12:00:00','2026-05-10 12:00:00',1900000000000000027,1900000000000000027,0),
+  ('1900000000000002006','1900000000000002002','button','AccessControlLoginMethod','Login Methods',NULL,NULL,NULL,NULL,'settings:access-control:login-method',1,1,0,0,0,NULL,0,0,NULL,0,NULL,0,'2026-05-10 12:00:00','2026-05-10 12:00:00',1900000000000000027,1900000000000000027,0),
+  ('1900000000000002007','1900000000000002002','button','AccessControlThirdPartyLogin','Third-party Login',NULL,NULL,NULL,NULL,'settings:access-control:third-party-login',1,1,0,0,0,NULL,0,0,NULL,0,NULL,0,'2026-05-10 12:00:00','2026-05-10 12:00:00',1900000000000000027,1900000000000000027,0),
+  ('1900000000000002008','1900000000000002002','button','AccessControlForgotPassword','Forgot Password',NULL,NULL,NULL,NULL,'settings:access-control:forgot-password',1,1,0,0,0,NULL,0,0,NULL,0,NULL,0,'2026-05-10 12:00:00','2026-05-10 12:00:00',1900000000000000027,1900000000000000027,0);
 /*!40000 ALTER TABLE `sys_menu` ENABLE KEYS */;
 
 --
